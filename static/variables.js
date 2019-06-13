@@ -17,18 +17,6 @@ module.exports = {
   },
   notices: [
     {
-      text: '成功申请到价保、领取到返利或者有功能建议欢迎打赏附言。',
-      type: 'reward',
-      button: rewards[3],
-      target: 'ming'
-    },
-    {
-      text: '理想情况下京价保每月仅各种签到任务即可带来5元以上的等同现金收益。',
-      button: rewards[2],
-      type: 'reward',
-      target: 'ming'
-    },
-    {
       text: '京东页面经常修改，唯有你的支持才能让京价保保持更新持续运作。',
       button: rewards[5],
       type: 'reward',
@@ -36,12 +24,6 @@ module.exports = {
     },
     {
       text: '京东的登录有效期很短，请在登录时勾选保存密码自动登录以便京价保自动完成工作。',
-      button: rewards[0],
-      type: 'reward',
-      target: 'ming'
-    },
-    {
-      text: '京价保全部代码已上传到GitHub，欢迎审查代码，了解京价保如何工作。',
       button: rewards[0],
       type: 'reward',
       target: 'ming'
@@ -83,7 +65,6 @@ module.exports = {
       target: 'samedi'
     }
   ],
-
   recommendServices: [
     {
       link: "https://cloud.tencent.com/redirect.php?redirect=1025&cps_key=8c3eff7793dd70781315d9b5c9727c39&from=console",

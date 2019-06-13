@@ -44,15 +44,17 @@
       </div>
     </div>
     <div class="discount-list" v-if="discountList">
+      <events :events="events" v-if="discountTab == 'featured' && events && events.length > 0"></events>
       <div class="discounts-box" v-for="discount in discountList" :key="discount.id">
         <div :class="discount.pinned ? 'discount pinned' : 'discount'">
-          <a class="title" :href="`${discount.goodLink}`" target="_blank">
+          <div class="title" @mouseover="discount.focus = true" @mouseout="discount.focus = false">
             <span class="merchant" v-if="discount.merchant">
               <img :src="discount.merchant.icon" :alt="discount.merchant.name">
             </span>
-            {{discount.title}}
+            <a :href="`${discount.goodLink}`" target="_blank">{{discount.title}}</a>
             <span class="discount_price">{{discount.price}}</span>
-          </a>
+            <report :discount="discount"></report>
+          </div>
           <div class="description">
             <a :href="`${discount.goodLink}`" target="_blank">
               <img
@@ -101,7 +103,7 @@
       </div>
     </div>
     <div class="loading" v-else>
-      <loading/>
+      <loading></loading>
     </div>
   </div>
 </template>
@@ -110,10 +112,12 @@
 import { DateTime } from "luxon";
 import { getSetting, readableTime } from "../static/utils";
 import loading from "./loading.vue";
+import report from "./report.vue";
+import events from "./events.vue";
 
 export default {
   name: "discounts",
-  components: { loading },
+  components: { loading, report, events },
   data() {
     return {
       followedTagIds: getSetting("followedTagIds", []),
@@ -136,6 +140,9 @@ export default {
     },
     showClear: function() {
       return this.keyword && this.keyword.length > 0;
+    },
+    events: function() {
+      return this.discountList ? this.discountList.filter(discount => discount.event) : [];
     }
   },
   methods: {
@@ -147,13 +154,14 @@ export default {
       this.selectTag = null;
       let queryParams = new URLSearchParams(condition);
       let response = await fetch(
-        `https://teaclub.zaoshu.so/discount?${queryParams.toString()}`
+        `https://jjb.zaoshu.so/discount?${queryParams.toString()}`
       );
       let discounts = await response.json();
       this.discountList = discounts.map(function(discount) {
         discount.displayTime = readableTime(
           DateTime.fromISO(discount.createdAt)
         );
+        discount.focus = false
         return discount;
       });
       localStorage.setItem("readDiscountAt", new Date());
@@ -172,7 +180,7 @@ export default {
       this.discountTab = null;
       this.discountList = null;
       let response = await fetch(
-        `https://teaclub.zaoshu.so/discount/tag/${tag.id}`
+        `https://jjb.zaoshu.so/discount/tag/${tag.id}`
       );
       let data = await response.json();
       this.selectTag = data.tag;
@@ -180,6 +188,7 @@ export default {
         discount.displayTime = readableTime(
           DateTime.fromISO(discount.createdAt)
         );
+        discount.focus = false
         return discount;
       });
       localStorage.setItem("readDiscountAt", new Date());
@@ -208,7 +217,8 @@ export default {
       switch (type) {
         case "featured":
           this.getDiscounts({
-            all: false
+            all: false,
+            time: Date.now()
           });
           break;
         case "concerned":
@@ -312,7 +322,7 @@ export default {
 
 .select-tag,
 .search {
-  width: 230px;
+  width: 220px;
   float: right;
   line-height: 50px;
   font-size: 14px;
@@ -337,7 +347,7 @@ export default {
   transition: border-color 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
   width: 70%;
   margin-top: 12px;
-  margin-right: 6px;
+  margin-right: 16px;
 }
 
 .search input:focus {
@@ -384,7 +394,7 @@ export default {
 .discount-list {
   margin-top: 50px;
   overflow-y: auto;
-  height: 465px;
+  height: 460px;
 }
 .loading {
   margin-top: 45px;
@@ -402,6 +412,7 @@ export default {
 .discount {
   border-bottom: 1px solid #eee;
   padding: 12px 8px;
+  position: relative;
 }
 
 .discount.pinned {

@@ -16,7 +16,7 @@
     {
       "matches": ["*://*.jd.com/*", "*://*.jd.hk/*"],
       "js": [
-        "static/zepto.min.js",
+        "static/jquery.min.js",
         "static/content_script.js"
       ],
       "css": [
@@ -58,6 +58,7 @@
     "webRequestBlocking",
     "alarms",
     "tabs",
+    "contextMenus",
     "notifications"
   ],
   "optional_permissions": [

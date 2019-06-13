@@ -7,6 +7,7 @@ import Vue from 'vue'
 
 import { getSetting } from './utils'
 import { notices } from './variables'
+import { getLoginState } from './account'
 
 import App from '../components/App.vue';
 new Vue({
@@ -159,16 +160,9 @@ function showJEvent(rateLimit) {
 
 
 $( document ).ready(function() {
-  var paid = localStorage.getItem('jjb_paid');
-  var account = localStorage.getItem('jjb_account');
-  var admission_test = localStorage.getItem('jjb_admission-test')
-  const displayRecommend = localStorage.getItem('displayRecommend')
-  const displayRecommendRateLimit = getSetting('displayRecommendRateLimit', {
-    rate: 7,
-    limit: 1
-  })
-  let windowWidth = Number(document.body.offsetWidth)
-  let time = Date.now().toString()
+  const paid = localStorage.getItem('jjb_paid');
+  const account = localStorage.getItem('jjb_account');
+  let loginState = getLoginState()
 
   // tippy
   tippy('.tippy')
@@ -176,43 +170,13 @@ $( document ).ready(function() {
   // 随机显示 Tips
   changeTips()
 
-  $('body').width(windowWidth-1)
-  // 窗口 resize
-  setTimeout(() => {
-    $('body').width(windowWidth)
-  }, 100);
-
-  // 查询推荐设置
- /*  $.getJSON("https://jjb.zaoshu.so/recommend/settings", function (json) {
-    if (json.display) {
-      localStorage.setItem('displayRecommend', json.display)
-    }
-    if (json.ratelimit) {
-      localStorage.setItem('displayRecommendRateLimit', JSON.stringify(json.ratelimit))
-    }
-    if (json.announcements && json.announcements.length > 0) {
-      localStorage.setItem('announcements', JSON.stringify(json.announcements))
-    }
-    if (json.promotions) {
-      localStorage.setItem('promotions', JSON.stringify(json.promotions))
-    }
-    if (json.recommendedLinks && json.recommendedLinks.length > 0) {
-      localStorage.setItem('recommendedLinks', JSON.stringify(json.recommendedLinks))
-    } else {
-      localStorage.removeItem('recommendedLinks')
-    }
-    if (json.recommendServices && json.recommendServices.length > 0) {
-      localStorage.setItem('recommendServices', JSON.stringify(json.recommendServices))
-    }
-  }); */
-
   // 查询最新版本
   $.getJSON("https://jjb.zaoshu.so/updates?buildid={{buildid}}&browser={{browser}}", function (lastVersion) {
     if (!lastVersion) return localStorage.removeItem('newVersion')
     let skipBuildId = localStorage.getItem('skipBuildId')
     let localBuildId = skipBuildId || "{{buildid}}"
     // 如果有新版
-    if (localBuildId < lastVersion.buildId) {
+    if (localBuildId < lastVersion.buildId && lastVersion.notice) {
       localStorage.setItem('newVersion', lastVersion.versionCode)
       // 如果新版是主要版本，而且当前版本需要被提示
       if (lastVersion.major && localBuildId < lastVersion.noticeBuildId) {
@@ -254,48 +218,16 @@ $( document ).ready(function() {
     return ($(".js_dialog:visible").length < 1) && ($(".weui-dialog:visible").length < 1)
   }
 
-  // 入学考试
-  function showTest(target) {
-    let testNo = target || '1'
-    $("#admissionTest .testbox").hide()
-    setTimeout(() => {
-      $("#admissionTest .test-" + testNo).show()
-    }, 50);
-  }
-
-  if (admission_test && admission_test == 'N') {
-    $("#admissionTest").show()
-    $("img.jjb-official").attr('src', "http://jjbcdn.zaoshu.so/wechat/qrcode_for_gh_21550d50400c_430.jpg")
-    $("#admissionTest .answer").on("click", function () {
-      let next = $(this).data('next')
-      if (next) {
-        showTest(next)
-      } else {
-        $("#admissionTest").hide()
-        localStorage.setItem('jjb_admission-test', 'Y');
-      }
-    })
-    $("#admissionTest .dismiss").on("click", function () {
-      $("#admissionTest").hide()
-      window.close();
-    })
-    showTest()
-  }
-
   // 常规弹窗延迟200ms
   setTimeout(() => {
     if (paid) {
       $("#dialogs").hide()
-    } else {
-      if (isNoDialog() && time[time.length - 1] < 4) {
-        showReward()
-      }
-    }
-    // 只有在没有弹框 且 打开了推荐 取 1/5 的几率弹出推荐
-    if (isNoDialog() && displayRecommend == 'true' && time[time.length - 1] > displayRecommendRateLimit.rate) {
-      showJEvent(displayRecommendRateLimit)
     }
 
+    // 没有弹框 且 未登录账号
+    if (isNoDialog() && (!account && loginState.class == "failed") || loginState.class == "unknown") {
+      $("#loginNotice").show();
+    }
 
     if (!account) {
       $("#clearAccount").addClass('weui-btn_disabled')
@@ -443,10 +375,8 @@ $( document ).ready(function() {
   })
 
   $("#clearAccount").on("click", function () {
-    weui.confirm('清除密码将移除本地存储的账号密码、订单记录、消息记录；清除后若需继续使用请重新登录并选择让京价保记住密码', function () {
+    weui.confirm('清除密码将移除本地存储的账号密码；清除后若需继续使用请重新登录并选择让京价保记住密码', function () {
       localStorage.removeItem('jjb_account')
-      localStorage.removeItem('jjb_orders')
-      localStorage.removeItem('jjb_messages')
       chrome.tabs.create({
         url: "https://passport.jd.com/uc/login"
       })
@@ -458,7 +388,7 @@ $( document ).ready(function() {
   })
 
 
-  $("#login").on("click", function () {
+  $(".openLogin").on("click", function () {
     chrome.runtime.sendMessage({
       text: "openLogin",
     }, function(response) {

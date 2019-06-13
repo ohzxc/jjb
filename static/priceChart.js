@@ -8,6 +8,11 @@ $( document ).ready(function() {
     <div class="jjbPriceChart">
       <h4 class="title">
         价格走势
+        <select name="days">
+          <option value="30">最近30天</option>
+          <option value="60">最近60天</option>
+          <option value="90">最近90天</option>
+        </select>
         <span id="disablePriceChart">&times;</span>
       </h4>
       <div id="jjbPriceChart">
@@ -16,10 +21,6 @@ $( document ).ready(function() {
       <span class="provider"><a href="https://blog.jjb.im/price-chart.html" target="_blank">由京价保提供</a></span>
     </div>
   `;
-  let priceNoticeDom = `
-    <div class="price_notice low-price" style="text-align: right; background: #70a20b;color: #fff;padding-right: 2em; ">低于均价</div>
-    <div class="price_notice high-price" style="text-align: right; background: #cf0400;color: #fff;padding-right: 2em; ">高于均价</div>
-  `
   if ($(".product-intro").length > 0) {
     $(".product-intro").append(priceChartDOM);
   }
@@ -28,11 +29,11 @@ $( document ).ready(function() {
     $(".first_area_md").append(priceChartDOM);
   }
 
-  function getPriceChart(sku) {
+  function getPriceChart(sku, days) {
     $.ajax({
       method: "GET",
       type: "GET",
-      url: `https://jjb.zaoshu.so/price/${sku}/detail`,
+      url: `https://jjb.zaoshu.so/price/${sku}/detail?days=${days}`,
       timeout: 5000,
       success: function(data){
         if (data.chart.length > 2) {
@@ -81,5 +82,8 @@ $( document ).ready(function() {
       });
     })
     getPriceChart(sku)
+    $('.jjbPriceChart. select[name=days]').change(function() {
+      getPriceChart(sku, $(this).val());
+    });
   }, 1000)
 });

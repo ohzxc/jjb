@@ -71,7 +71,9 @@ var actualCode =  '(' + function() {
     };
 
     makePropertyWritable(window, "navigator", "userAgent");
-    window.navigator.userAgent = 'Mozilla/5.0 (iPhone; CPU iPhone OS 9_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/10.2 Mobile/15E148 Safari/604.1 jdjr-app ios';
+    if (window.location.href.indexOf("/pc/") < 0) {
+        window.navigator.userAgent = 'Mozilla/5.0 (iPhone; CPU iPhone OS 9_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/10.2 Mobile/15E148 Safari/604.1 jdjr-app ios';
+    }
 } + ')();';
 
 var s = document.createElement('script');

@@ -60,16 +60,22 @@ function packContentJs() {
 }
 
 function packContentStyle() {
-  return gulp.src(['static/style/weui.min.css', 'static/style/style.css'])
+  return gulp.src(['node_modules/weui/dist/style/weui.css', 'static/style/style.css'])
     .pipe(concat('content_style.css'))
     .pipe(cleanCss())
     .pipe(gulp.dest('build/static/style'));
 };
 
+function packStartStyle() {
+  return gulp.src(['node_modules/weui/dist/style/weui.css', 'static/style/start.css'])
+    .pipe(concat('start_style.css'))
+    .pipe(cleanCss())
+    .pipe(gulp.dest('build/static/style'));
+};
 
 function packPopupStyle() {
   return gulp.src([
-    'static/style/weui.min.css',
+    'node_modules/weui/dist/style/weui.css',
     'static/style/popup.css'
   ])
   .pipe(concat('popup_style.css'))
@@ -88,7 +94,7 @@ function moveJs() {
   return gulp.src([
     'static/start.js',
     'static/mobile_script.js',
-    'node_modules/zepto/dist/zepto.min.js',
+    'node_modules/jquery/dist/jquery.min.js',
     'node_modules/dialog-polyfill/dialog-polyfill.js',
     'node_modules/@sunoj/touchemulator/touch-emulator.js',
   ])
@@ -147,7 +153,7 @@ function moveBundleStatic() {
 const moveBuildBundleFile = gulp.series(moveFile, buildBundle, moveBuildBundle, moveBundleStatic)
 
 exports.default = gulp.series(
-  moveFile, moveJs, packPriceChart, packContentStyle, packPopupStyle,
+  moveFile, moveJs, packPriceChart, packContentStyle, packPopupStyle, packStartStyle,
   packContentJs, moveBuildBundleFile, moveStatic
 );
 

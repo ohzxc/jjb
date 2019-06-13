@@ -1,414 +1,6 @@
 <template>
   <div>
-    <div class="settings">
-      <div class="weui-tab">
-        <div :class="`${scienceOnline} weui-navbar`">
-          <div class="weui-navbar__item weui-bar__item_on" data-type="frequency_settings">任务设置</div>
-          <div class="weui-navbar__item" data-type="notice_settings">通知设置</div>
-          <div class="weui-navbar__item" data-type="other_settings">高级设置</div>
-        </div>
-        <div class="weui-tab__panel">
-          <form
-            id="settings"
-            data-persist="garlic"
-            data-domain="true"
-            data-destroy="false"
-            method="POST"
-          >
-            <div class="frequency_settings settings_box">
-              <div class="weui-cells weui-cells_form">
-                <div
-                  class="weui-cell weui-cell_select weui-cell_select-after"
-                  v-for="task in taskList"
-                  :key="task.id"
-                >
-                  <div class="weui-cell__bd job-m">
-                    <span :title="task.description" v-tippy>
-                      <a
-                        v-if="task.platform == 'm'"
-                        class="openMobilePage"
-                        :data-url="task.url"
-                      >{{task.title}}</a>
-                      <a v-else :href="task.url" target="_blank">{{task.title}}</a>
-                    </span>
-                    <span v-show="task.suspended && !task.checked" v-tippy title="因账号未登录任务已暂停运行">
-                      <i class="job-state weui-icon-waiting-circle" @click="showLoginState"></i>
-                    </span>
-                    <i
-                      v-show="task.checked"
-                      v-tippy
-                      :title="task.checkin_description"
-                      class="today weui-icon-success-circle"
-                    ></i>
-                    <i
-                      v-show="!task.checked && !task.suspended"
-                      @click="retryTask(task)"
-                      class="reload-icon"
-                      v-tippy
-                      :title="task.last_run_description"
-                    ></i>
-                  </div>
-                  <div class="weui-cell__bd">
-                    <select class="weui-select" v-auto-save :name="`job${task.id}_frequency`">
-                      <option
-                        v-for="option in task.frequencyOption"
-                        :value="option"
-                        :key="option"
-                      >{{ frequencyOptionText[option] }}</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-              <div class="tips bottom-tips">
-                <p class="page__desc">
-                  <a id="notice">京东页面经常更新，唯有你的支持才能让京价保保持更新。</a>
-                  <a
-                    href="#"
-                    class="weui-btn weui-btn_mini weui-btn_primary"
-                    data-to="weixin"
-                    data-target="ming"
-                  >打赏</a>
-                </p>
-              </div>
-            </div>
-            <div class="notice_settings settings_box" style="display: none">
-              <div class="weui-cells weui-cells_form">
-                <div class="weui-cell weui-cell_switch">
-                  <div class="weui-cell__bd">不再提示签到通知</div>
-                  <div class="weui-cell__ft">
-                    <input class="weui-switch" v-auto-save type="checkbox" name="mute_checkin">
-                  </div>
-                </div>
-                <div class="weui-cell weui-cell_switch">
-                  <div class="weui-cell__bd">不再提示领券通知</div>
-                  <div class="weui-cell__ft">
-                    <input class="weui-switch" v-auto-save type="checkbox" name="mute_coupon">
-                  </div>
-                </div>
-                <div class="weui-cell weui-cell_switch">
-                  <div class="weui-cell__bd">隐藏价保商品信息</div>
-                  <div class="weui-cell__ft">
-                    <input class="weui-switch" type="checkbox" v-auto-save name="hide_good">
-                  </div>
-                </div>
-                <div class="weui-cell weui-cell_switch">
-                  <div class="weui-cell__bd">
-                    <span
-                      data-tippy-placement="top-start"
-                      class="tippy"
-                      data-tippy-content="开启后不再晚上12点至凌晨6点发送浏览器通知"
-                    >开启夜晚防打扰</span>
-                  </div>
-                  <div class="weui-cell__ft">
-                    <input class="weui-switch" type="checkbox" v-auto-save name="mute_night">
-                  </div>
-                </div>
-                <div class="weui-cell weui-cell_switch">
-                  <div class="weui-cell__bd">
-                    <span>
-                      播放提示音效
-                      <i
-                        id="listen"
-                        class="weui-icon-info-circle tippy"
-                        data-tippy-content="试听全部提示音效"
-                      ></i>
-                    </span>
-                  </div>
-                  <div class="weui-cell__ft">
-                    <input class="weui-switch" type="checkbox" v-auto-save name="play_audio">
-                  </div>
-                </div>
-              </div>
-              <div class="other_actions">
-                <div class="recommendation">
-                  <h3 style="text-align: center;color: #666;">服务推荐</h3>
-                  <p class="recommendServices">
-                    <span
-                      :class="service.class"
-                      v-for="service in recommendServices"
-                      :key="service.title"
-                    >
-                      <a
-                        target="_blank"
-                        v-tippy
-                        :title="service.description"
-                        :href="service.link"
-                      >{{service.title}}</a>
-                    </span>
-                  </p>
-                  <div class="recommendedLink">
-                    <p v-for="link in recommendedLinks" :key="link.title">
-                      <a
-                        v-if="link.mobile"
-                        class="openMobilePage"
-                        :style="link.style"
-                        :data-url="link.url"
-                      >{{link.title}}</a>
-                      <a
-                        v-else
-                        :href="link.url"
-                        :style="link.style"
-                        class="weui-form-preview__btn weui-form-preview__btn_primary"
-                        target="_blank"
-                      >{{link.title}}</a>
-                    </p>
-                  </div>
-                </div>
-                <h3 style="text-align: center;color: #666;">关注京价保</h3>
-                <p style="text-align: center;margin-top: -10px;">
-                  <a
-                    href="https://t.me/jingjiabao"
-                    class="weui-btn weui-btn_mini weui-btn_plain-default tippy"
-                    data-tippy-placement="top-start"
-                    data-tippy-content="通过电报群接收京价保的最新消息"
-                    target="_blank"
-                  >京价保@Telegram</a>
-                  <a
-                    href="#"
-                    id="openWechatCard"
-                    class="weui-btn weui-btn_mini weui-btn_plain-default tippy"
-                    data-tippy-placement="top-start"
-                    data-tippy-content="关注京价保的公众号"
-                  >京价保公众号</a>
-                </p>
-              </div>
-            </div>
-            <div class="other_settings settings_box" style="display: none">
-              <div class="weui-cells weui-cells_form">
-                <div class="weui-cell weui-cell_select weui-cell_select-after">
-                  <div class="weui-cell__bd">
-                    <span
-                      data-tippy-placement="top-start"
-                      class="tippy"
-                      data-tippy-content="京东价格保护的时间不同商品不同，大部分商品是7天价保"
-                    >监控订单范围</span>
-                  </div>
-                  <div class="weui-cell__bd">
-                    <select class="weui-select" v-auto-save name="price_pro_days">
-                      <option value="7">最近7天</option>
-                      <option value="15">最近15天</option>
-                      <option value="30">最近30天</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="weui-cell weui-cell_select weui-cell_select-after">
-                  <div class="weui-cell__bd">
-                    <span
-                      data-tippy-placement="top-start"
-                      class="tippy"
-                      data-tippy-content="商品降价小于“最小价差”时将不会自动申请价保"
-                    >最小价差</span>
-                  </div>
-                  <div class="weui-cell__bd">
-                    <select class="weui-select" v-auto-save name="price_pro_min">
-                      <option value="0.1">0.1元</option>
-                      <option value="0.5">0.5元</option>
-                      <option value="1">1元</option>
-                      <option value="5">5元</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="weui-cell weui-cell_switch">
-                  <div class="weui-cell__bd">
-                    <span
-                      data-tippy-placement="top-start"
-                      class="tippy"
-                      data-tippy-content="如果您是Plus会员，在价保时会选择使用Plus价格来做对比"
-                    >我是Plus会员</span>
-                  </div>
-                  <div class="weui-cell__ft">
-                    <input class="weui-switch" type="checkbox" v-auto-save name="is_plus">
-                  </div>
-                </div>
-                <!-- @if Browser='chrome' -->
-                <div class="weui-cell weui-cell_switch" v-if="currentBrowser == 'chrome'">
-                  <div class="weui-cell__bd">
-                    <span
-                      data-tippy-placement="top-start"
-                      class="tippy"
-                      data-tippy-content="开启剁手保护模式后，每次购物时京价保将向你发起灵魂质问，帮你极致省钱"
-                    >剁手保护模式</span>
-                  </div>
-                  <div class="weui-cell__ft">
-                    <input class="weui-switch" type="checkbox" v-auto-save name="hand_protection">
-                  </div>
-                </div>
-                <div class="weui-cell weui-cell_switch" v-if="currentBrowser == 'chrome'">
-                  <div class="weui-cell__bd">
-                    <span
-                      data-tippy-placement="top-start"
-                      class="tippy"
-                      data-tippy-content="京东热卖是带有推荐的链接落地页，开启本选项后将自动为你把该页面跳转到商品页"
-                    >自动跳转热卖页</span>
-                  </div>
-                  <div class="weui-cell__ft">
-                    <input class="weui-switch" type="checkbox" v-auto-save name="auto_gobuy">
-                  </div>
-                </div>
-                <!-- @endif -->
-
-                <div class="weui-cell weui-cell_switch">
-                  <div class="weui-cell__bd">
-                    <span
-                      data-tippy-placement="top-start"
-                      class="tippy"
-                      data-tippy-content="开启本选项后，发现商品降价有价保机会时，京价保只会发送浏览器提醒，而不会自动提交价保申请（不推荐开启此选项）"
-                    >被动价保模式</span>
-                  </div>
-                  <div class="weui-cell__ft">
-                    <input
-                      class="weui-switch"
-                      type="checkbox"
-                      v-auto-save="{ notice: '开启本选项后，发现商品降价有价保机会时，京价保只会发送浏览器提醒，而不会自动提交价保申请' }"
-                      name="prompt_only"
-                    >
-                  </div>
-                </div>
-                <div class="weui-cell weui-cell_switch">
-                  <div class="weui-cell__bd">
-                    <span
-                      v-tippy
-                      title="在右侧“最近订单”中京价保提供的商品链接包含了京东联盟的跳转，它不会影响你，却能给开发者提供一些收入，帮助京价保保持更新。"
-                    >停用最近订单的链接</span>
-                  </div>
-                  <div class="weui-cell__ft">
-                    <input
-                      class="weui-switch"
-                      type="checkbox"
-                      v-on:change="updateDisableOrderLink"
-                      v-auto-save="{
-                        notice: '京价保展示的最近订单商品链接带有京东联盟的返利，使用该链接购买能给开发者提供一些收入，帮助京价保保持更新。确认要停用该链接吗？'
-                      }"
-                      name="disabled_link"
-                    >
-                  </div>
-                </div>
-                <div class="weui-cell weui-cell_switch">
-                  <div class="weui-cell__bd">
-                    <span
-                      data-tippy-placement="top-start"
-                      class="tippy"
-                      data-tippy-content="该功能会自动跳转http的访问至https，这能更安全的访问京东以及防止运营商劫持（而且这样你就不会把劫持跳转的锅甩到京价保身上了）。"
-                    >强制https访问京东</span>
-                  </div>
-                  <div class="weui-cell__ft">
-                    <input class="weui-switch" type="checkbox" v-auto-save name="force_https">
-                  </div>
-                </div>
-                <div class="weui-cell weui-cell_switch">
-                  <div class="weui-cell__bd">
-                    <span
-                      data-tippy-placement="top-start"
-                      class="tippy"
-                      data-tippy-content="停用价格走势功能将停止上报京价保在本地获取到的商品价格同时停止展示价格走势图"
-                    >停用价格走势图</span>
-                  </div>
-                  <div class="weui-cell__ft">
-                    <input
-                      class="weui-switch"
-                      type="checkbox"
-                      v-auto-save="{ notice: '停用价格走势功能将停止上报京价保在本地获取到的商品价格，同时也会停止展示价格走势图' }"
-                      name="disable_pricechart"
-                    >
-                  </div>
-                </div>
-              </div>
-              <div class="other_actions">
-                <p class="help_btns" style="text-align: center;">
-                  <span class="el-tag el-tag--success">
-                    <a
-                      href="#"
-                      id="openFeedback"
-                      data-tippy-placement="top-start"
-                      class="tippy"
-                      data-tippy-content="向作者提供功能建议或京东活动的地址，帮助京价保及时更新"
-                    >建议反馈</a>
-                  </span>
-                  <span class="el-tag el-tag--warning">
-                    <a
-                      href="https://blog.jjb.im/faq.html"
-                      target="_blank"
-                      data-tippy-placement="top-start"
-                      class="tippy"
-                      data-tippy-content="了解一些常见问题的解答"
-                    >常见问题</a>
-                  </span>
-                </p>
-                <p style="text-align: center;">
-                  <a
-                    href="#"
-                    id="clearAccount"
-                    class="weui-btn weui-btn_mini weui-btn_plain-default tippy"
-                    data-tippy-placement="top-start"
-                    data-tippy-content="在登录时勾选记住密码可保存新的密码"
-                  >清除账号密码和记录</a>
-                </p>
-              </div>
-              <p
-                class="text-tips version showChangelog tippy"
-                @click="showChangelog"
-                data-tippy-content="点击查看版本更新记录"
-              >
-                当前版本：{{currentVersion}}
-                <span class="weui-badge weui-badge_dot" v-if="newChangelog"></span>
-                <span class="weui-badge new-version" v-if="newVersion">有新版</span>
-              </p>
-            </div>
-          </form>
-        </div>
-      </div>
-      <div class="bottom-box">
-        <div class="avatar">
-          <a
-            id="loginState"
-            :class="`${loginState.class} login-state showLoginState`"
-            v-tippy
-            :title="loginStateDescription"
-          ></a>
-        </div>
-        <div class="links">
-          <span class="el-tag el-tag--success">
-            <a
-              href="#"
-              class="switch-paymethod tippy"
-              data-tippy-placement="top-start"
-              data-tippy-content="打赏开发者"
-              data-to="
-              wechat"
-              data-target="ming"
-            >打赏开发者</a>
-          </span>
-          <span class="el-tag el-tag--danger">
-            <a
-              href="#"
-              class="switch-paymethod"
-              title="天天领支付宝红包"
-              v-tippy
-              data-to="alipay"
-              data-target="redpack"
-            >支付宝红包</a>
-          </span>
-          <span class="el-tag el-tag--warning">
-            <a
-              href="#"
-              id="openjEventCard"
-              data-tippy-placement="top-start"
-              class="tippy"
-              data-tippy-content="热门的促销活动推荐"
-            >活动推荐</a>
-          </span>
-          <span class="el-tag">
-            <a
-              data-tippy-placement="top-start"
-              class="tippy"
-              data-tippy-content="PLUS会员每个月可以领取总额100元的全品类券，但是领取后24小时就会失效，因此推荐每次购物前领取"
-              href="https://plus.jd.com/coupon/index"
-              target="_blank"
-            >领PLUS券</a>
-          </span>
-        </div>
-      </div>
-    </div>
+    <settings :login-state="loginState" @show-login="showLoginState = true" @update-order-link="updateDisableOrderLink"></settings>
     <div class="contents">
       <div class="weui-tab">
         <div class="weui-navbar">
@@ -454,7 +46,7 @@
         </div>
         <div class="weui-tab__panel">
           <div id="orders" v-if="contentType == 'orders'" class="weui-cells contents-box orders">
-            <div v-if="orders && orders.length > 0">
+            <ul v-if="orders && orders.length > 0">
               <li
                 v-for="order in orders"
                 :key="order.id"
@@ -549,7 +141,7 @@
                       </div>
                     </div>
                   </div>
-                  <p class="success_log" v-for="(log, index) in good.success_log" :key="index">{{log}}</p>
+                  <p :class="`log ${log.status}`" v-for="(log, index) in good.logs" :key="index">{{log.message}}</p>
                 </div>
               </li>
               <p class="text-tips">
@@ -560,7 +152,7 @@
                   title="点击了解京东价格保护政策"
                 >只显示在价保监控范围内且下单金额大于0的订单（默认15天内）</a>
               </p>
-            </div>
+            </ul>
             <div class="no_order" v-else>
               <div v-if="loadingOrder">
                 <h4>正在加载最近订单</h4>
@@ -573,34 +165,55 @@
           </div>
           <div id="messages" v-if="contentType == 'messages'" class="weui-cells contents-box messages">
             <div class="messages-top">
-              <div class="messages-header">
-                <button
-                  :class="[selectedTab == 'checkin_notice' ? 'selectedTab' : '', 'Button', 'messages-tab', 'Button--plain', 'tippy']"
-                  data-tippy-content="签到记录"
-                  data-type="checkin_notice"
-                  type="button"
-                  @click="selectType('checkin_notice')"
-                >
-                  <span class="checkin"></span>
-                </button>
-                <button
-                  :class="[selectedTab == 'notice' ? 'selectedTab' : '', 'Button', 'messages-tab', 'Button--plain', 'tippy']"
-                  data-tippy-content="价保记录"
-                  data-type="notice"
-                  type="button"
-                  @click="selectType('notice')"
-                >
-                  <span class="notice"></span>
-                </button>
-                <button
-                  :class="[selectedTab == 'coupon' ? 'selectedTab' : '', 'Button', 'messages-tab', 'Button--plain', 'tippy']"
-                  data-tippy-content="领券记录"
-                  data-type="coupon"
-                  type="button"
-                  @click="selectType('coupon')"
-                >
-                  <span class="coupon"></span>
-                </button>
+              <div class="messages-header message-type">
+                <div role="radiogroup" class="el-radio-group">
+                  <label
+                    role="radio"
+                    tabindex="-1"
+                    class="el-radio-button el-radio-button--mini is-active"
+                  >
+                    <input
+                      type="radio"
+                      v-model="selectedTab"
+                      tabindex="-1"
+                      class="el-radio-button__orig-radio"
+                      value="checkin_notice"
+                    >
+                    <span class="el-radio-button__inner">签到记录</span>
+                  </label>
+                  <label
+                    role="radio"
+                    aria-disabled="true"
+                    tabindex="-1"
+                    class="el-radio-button el-radio-button--mini"
+                  >
+                    <input
+                      type="radio"
+                      v-model="selectedTab"
+                      tabindex="-1"
+                      class="el-radio-button__orig-radio"
+                      value="notice"
+                    >
+                    <span class="el-radio-button__inner">价保记录</span>
+                  </label>
+                  <label
+                    role="radio"
+                    aria-disabled="true"
+                    tabindex="-1"
+                    class="el-radio-button el-radio-button--mini"
+                  >
+                    <input
+                      type="radio"
+                      v-model="selectedTab"
+                      tabindex="-1"
+                      class="el-radio-button__orig-radio"
+                      value="coupon"
+                    >
+                    <div class="el-radio-button__inner">
+                      领券记录
+                    </div>
+                  </label>
+              </div>
               </div>
             </div>
             <div class="message-items" v-if="messages && messages.length > 0">
@@ -611,7 +224,7 @@
                 >
                   <div class="weui-media-box weui-media-box_text">
                     <h4 class="weui-media-box__title message">
-                      <i :class="`${message.type} ${message.batch}`"></i>
+                      <i :class="`${message.type} ${message.batch} ${message.unit}`"></i>
                       {{message.title}}
                     </h4>
                     <div class="coupon-box" v-if="message.coupon">
@@ -657,7 +270,7 @@
             class="showChangelog weui-tabbar__item"
             @click="showChangelog"
             v-tippy
-            title="查看京价保最近更新记录"
+            :title="`当前版本：${currentVersion}，查看京价保最近更新记录`"
             style="position: relative;"
           >
             <img src="../static/image/update.png" alt="" class="weui-tabbar__icon">
@@ -689,7 +302,11 @@
         </div>
       </div>
     </div>
-    <login-notice :state="loginState"/>
+    <div class="dialogs">
+      <guide v-if="showGuide" :login-state="loginState"></guide>
+      <login-notice v-if="showLoginState" :state="loginState" @close="showLoginState = false"></login-notice>
+      <popup v-if="showPopup" @close="showPopup = false"></popup>
+    </div>
   </div>
 </template>
 
@@ -701,9 +318,8 @@ import Vue from "vue";
 
 import { DateTime } from 'luxon'
 import { getLoginState } from '../static/account'
-import { tasks, frequencyOptionText, findJobPlatform } from "../static/tasks";
-import { getSetting, versionCompare, readableTime } from "../static/utils";
-import { rewards, notices, stateText, recommendServices } from "../static/variables";
+import { getSetting, versionCompare, readableTime, saveSetting } from "../static/utils";
+import { stateText } from "../static/variables";
 
 function tippyElement(el) {
   setTimeout(() => {
@@ -727,8 +343,8 @@ Vue.directive("tippy", {
 
 Vue.directive("autoSave", {
   bind(el, binding, vnode) {
-    function revertValue(el) {
-      let current = getSetting(el.name, null);
+    function revertValue(el, binding) {
+      let current = getSetting(el.name, (binding.value && binding.value.current) ? binding.value.current : null);
       if (el.type == "checkbox") {
         if (current == "checked") {
           el.checked = true;
@@ -741,6 +357,7 @@ Vue.directive("autoSave", {
         el.value = current;
       }
     }
+    let autoSaveEvent = new Event('auto-save');
     function saveToLocalStorage(el, binding) {
       if (el.type == "checkbox") {
         if (el.checked) {
@@ -751,9 +368,10 @@ Vue.directive("autoSave", {
       } else {
         localStorage.setItem(el.name, el.value);
       }
+      el.dispatchEvent(autoSaveEvent);
       weui.toast("设置已保存", 500);
     }
-    revertValue(el);
+    revertValue(el, binding);
     el.addEventListener("change", function(event) {
       if (binding.value && binding.value.notice && el.checked) {
         weui.confirm(
@@ -764,7 +382,7 @@ Vue.directive("autoSave", {
           function() {
             event.preventDefault();
             setTimeout(() => {
-              revertValue(el);
+              revertValue(el, binding);
             }, 50);
           },
           {
@@ -780,36 +398,37 @@ Vue.directive("autoSave", {
 
 import loginNotice from './login-notice.vue';
 import discounts from './discounts.vue';
+import settings from './settings.vue';
+import guide from './guide.vue';
+import popup from './popup.vue';
 
 export default {
   name: "App",
-  components: { loginNotice, discounts },
+  components: { loginNotice, discounts, settings, guide, popup },
   data() {
     return {
-      taskList: [],
       messages: [],
       orders: [],
       skuPriceList: {},
-      recommendedLinks: getSetting("recommendedLinks", []),
       stateText: stateText,
       newDiscounts: false,
       loadingOrder: false,
-      scienceOnline: false,
-      frequencyOptionText: frequencyOptionText,
+      showPopup: true,
+      showLoginState: false,
       currentVersion: "{{version}}",
-      currentBrowser: "{{browser}}",
-      recommendServices: getSetting("recommendServices", recommendServices),
       disableOrderLink: getSetting("disabled_link") == "checked" ? true : false,
       newChangelog: versionCompare(getSetting("changelog_version", "2.0"), "{{version}}") < 0,
       hiddenOrderIds: getSetting("hiddenOrderIds", []),
       hiddenPromotionIds: getSetting("hiddenPromotionIds", []),
       selectedTab: null,
       contentType: 'orders',
-      loginStateDescription: "未能获取登录状态",
       newVersion: getSetting("newVersion", null),
       unreadCount: getSetting("unreadCount", null),
+      olduser: getSetting('jjb_admission-test', false),
+      showGuideAt: getSetting('showGuideAt', false),
       loginState: {
         default: true,
+        description: "未能获取登录状态",
         m: {
           state: "unknown"
         },
@@ -820,23 +439,17 @@ export default {
     };
   },
   mounted: async function() {
-    // 准备数据
-    this.getTaskList();
     // 渲染订单
     setTimeout(() => {
-      this.getOrders()
+      this.renderOrders()
     }, 50);
     // 查询最新优惠
     setTimeout(() => {
       this.getLastDiscount()
     }, 100);
-    // 测试是否科学上网
-    setTimeout(() => {
-      this.tryGoogle()
-    }, 200);
     // 渲染通知
     setTimeout(() => {
-      this.getMessages()
+      this.renderMessages()
     }, 500);
     this.dealWithLoginState()
 
@@ -848,40 +461,25 @@ export default {
     ) => {
       switch (message.action) {
         case "orders_updated":
-          let orders = JSON.parse(message.data).map(function(order) {
-            order.displayTime = readableTime(DateTime.fromISO(order.time));
-            return order;
-          });
-          this.orders = orders;
+          this.renderOrders(message.orders)
           break;
-        case "new_message":
-          this.unreadCount = this.unreadCount + 1
-          this.messages = makeupMessages(JSON.parse(message.data));
+        case "messages_updated":
+          this.renderMessages(message.messages);
           break;
         case "loginState_updated":
           this.dealWithLoginState();
-          setTimeout(() => {
-            this.getTaskList();
-          }, 1000);
           break;
         default:
           break;
       }
     });
   },
-  watch: {
-    loginState: function(newState, oldState) {
-      if (
-        oldState.m.state != "alive" &&
-        oldState.pc.state != "alive" &&
-        !oldState.default
-      ) {
-        if (newState.m.state == "alive" || newState.pc.state == "alive") {
-          if (this.orders.length < 1) {
-            this.loadingOrder = true;
-            this.retryTask(tasks[0], true);
-          }
-        }
+  computed: {
+    showGuide: function() {
+      if (!this.olduser && !this.showGuideAt) {
+        return true
+      } else {
+        return false
       }
     }
   },
@@ -901,25 +499,17 @@ export default {
       this.contentType = type
       switch (type) {
         case "messages":
-          this.getMessages()
+          this.renderMessages()
           this.readMessages()
           break;
         case "discounts":
           this.readDiscounts()
           break;
         case "orders":
-          this.getOrders()
+          this.renderOrders()
           break;
         default:
           break;
-      }
-    },
-    tryGoogle: async function() {
-      let response = await fetch("https://www.googleapis.com/discovery/v1/apis?name=abusiveexperiencereport");
-      if ( response.status == "200" ) {
-        this.scienceOnline = true;
-      } else {
-        this.scienceOnline = false;
       }
     },
     updateDisableOrderLink: function() {
@@ -927,23 +517,10 @@ export default {
         this.disableOrderLink = getSetting("disabled_link") == "checked" ? true : false
       }, 1000);
     },
-    makeupMessages: function(messages) {
-      if (messages) {
-        return messages.reverse().map(function(message) {
-          if (message.type == "coupon") {
-            message.coupon = JSON.parse(message.content);
-          }
-          message.time = readableTime(DateTime.fromISO(message.time));
-          return message;
-        });
-      } else {
-        return [];
-      }
-    },
     readMessages: function () {
       this.unreadCount = 0
       chrome.runtime.sendMessage({
-        text: "clearUnread"
+        action: "clearUnread"
       }, function (response) {
         console.log("Response: ", response);
       });
@@ -958,16 +535,32 @@ export default {
           DateTime.fromJSDate(new Date(promotion.validDate)) < DateTime.local()
         );
       });
-      localStorage.setItem("promotions", JSON.stringify(promotions));
+      saveSetting("promotions", promotions);
       return promotions;
     },
-    getOrders: function() {
-      let orders = JSON.parse(localStorage.getItem("jjb_orders"));
+    renderMessages: function(messages) {
+      if (!messages) {
+        messages = getSetting('jjb_messages', [])
+        chrome.runtime.sendMessage({ action: "getMessages" })
+      }
+      this.messages = messages.map(function(message) {
+        if (message.type == "coupon") {
+          message.coupon = message.content;
+        }
+        message.time = readableTime(message.timestamp ? DateTime.fromMillis(message.timestamp) : DateTime.fromISO(message.time));
+        return message;
+      });
+    },
+    renderOrders: function(orders) {
+      if (!orders) {
+        orders = getSetting("jjb_orders", [])
+        chrome.runtime.sendMessage({ action: "getOrders" })
+      }
       let skuPriceList = getSetting("skuPriceList", {});
       let suspendedApplyIds = getSetting("suspendedApplyIds", []);
       if (orders) {
         orders = orders.map(function(order) {
-          order.displayTime = readableTime(DateTime.fromISO(order.time));
+          order.displayTime = readableTime(DateTime.fromMillis(order.timestamp));
           order.goods = order.goods.map(function(good, index) {
             good.suspended = _.indexOf(suspendedApplyIds, `applyBT_${order.id}_${good.sku}_${index+1}`) > -1 ? "suspended" : false
             return good
@@ -1000,79 +593,19 @@ export default {
 
       this.loginState["pc"].description = "当前登录状态" + getStateDescription(loginState, "pc");
       this.loginState["m"].description = "当前登录状态" + getStateDescription(loginState, "m");
-      this.loginStateDescription = "PC网页版登录" + getStateDescription(loginState, 'pc') + "，移动网页版登录" + getStateDescription(loginState, 'm')
-    },
-    // 任务列表
-    getTaskList: async function() {
-      this.taskList = _.map(tasks, task => {
-        task.last_run_at = getSetting("job" + task.id + "_lasttime", null);
-        task.frequencySetting = getSetting(
-          "job" + task.id + "_frequency",
-          task.frequency
-        );
-        task.last_run_description = task.last_run_at
-          ? "上次运行： " +
-            readableTime(DateTime.fromMillis(Number(task.last_run_at)))
-          : "从未执行";
-        // 如果是签到任务，则读取签到状态
-        if (task.checkin) {
-          let checkinRecord = getSetting("jjb_checkin_" + task.key, null);
-          if (
-            checkinRecord &&
-            checkinRecord.date == DateTime.local().toFormat("o")
-          ) {
-            task.checked = true;
-            task.checkin_description =
-              "完成于：" +
-              readableTime(DateTime.fromISO(checkinRecord.time)) +
-              (checkinRecord.value ? "，领到：" + checkinRecord.value : "");
-          }
-        }
-        // 选择运行平台
-        task.platform = findJobPlatform(task);
-        if (!task.url) {
-          task.url = task.platform
-            ? task.src[task.platform]
-            : task.src[task.type[0]];
-        }
-        if (!task.platform) {
-          task.suspended = true;
-          task.platform = task.type[0];
-        }
-        return task;
-      });
-    },
-    getMessages: function() {
-      let messages = JSON.parse(localStorage.getItem("jjb_messages"));
-      messages = this.makeupMessages(messages);
-      this.messages = messages;
-    },
-    showLoginState: function() {
-      $("#loginNotice").show();
-    },
-    retryTask: function(task, hideNotice = false) {
-      chrome.runtime.sendMessage(
-        {
-          action: "runTask",
-          hideNotice: hideNotice,
-          taskId: task.id
-        },
-        function(response) {
-          if (!hideNotice) {
-            weui.toast("手动运行成功", 3000);
-          }
-        }
-      );
+      this.loginState.description = "PC网页版登录" + getStateDescription(loginState, 'pc') + "，移动网页版登录" + getStateDescription(loginState, 'm')
+
+      // 如果登录失败，那么显示提示
+      if (loginState.class == "failed") {
+        this.showLoginState = true
+      }
     },
     selectType: function(type) {
       this.selectedTab = type;
     },
     dismiss: function(order) {
       this.hiddenPromotionIds.push(order.id);
-      localStorage.setItem(
-        "hiddenPromotionIds",
-        JSON.stringify(this.hiddenPromotionIds)
-      );
+      saveSetting("hiddenPromotionIds", this.hiddenPromotionIds);
       this.$forceUpdate();
     },
     toggleOrder: function(order) {
@@ -1081,10 +614,7 @@ export default {
       } else {
         this.hiddenOrderIds.push(order.id);
       }
-      localStorage.setItem(
-        "hiddenOrderIds",
-        JSON.stringify(this.hiddenOrderIds)
-      );
+      saveSetting("hiddenOrderIds", this.hiddenOrderIds);
       this.$forceUpdate();
     },
     toggleSuspend: function (order, good, index) {
@@ -1126,10 +656,40 @@ export default {
 </script>
 
 <style scoped>
+.orders, .messages, .discounts{
+  overflow: hidden;
+  height: 510px;
+  width: 431px;
+}
+
+.contents-box.orders ul{
+  height: 510px;
+  overflow-y: auto;
+}
+.message-items {
+  margin-top: 45px;
+  height: 460px;
+  overflow-y: auto;
+}
 .order-good.suspended{
   opacity: 0.5
 }
 .weui-navbar.true .weui-navbar__item.weui-bar__item_on{
   background-image: linear-gradient(180deg,#09bb07,#06a90c94);
+}
+
+.messages-header {
+    display: flex;
+    border-bottom: 1px solid #ebeef5;
+    height: 32px;
+    padding-top: 6px;
+    position: fixed;
+    width: 432px;
+    background: #fafafa;
+    z-index: 10;
+}
+
+.el-radio-group{
+  margin: 0 auto;
 }
 </style>

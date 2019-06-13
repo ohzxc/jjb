@@ -1768,7 +1768,7 @@ function CheckDom() {
 
   // 自动跳转至商品页面
   if ($(".shop_intro .gobuy").length > 0) {
-    showUtmSource()
+   // showUtmSource()
     getSetting('auto_gobuy', autoGobuy)
   };
 

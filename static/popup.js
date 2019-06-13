@@ -183,7 +183,7 @@ $( document ).ready(function() {
   }, 100);
 
   // 查询推荐设置
-  $.getJSON("https://jjb.zaoshu.so/recommend/settings", function (json) {
+ /*  $.getJSON("https://jjb.zaoshu.so/recommend/settings", function (json) {
     if (json.display) {
       localStorage.setItem('displayRecommend', json.display)
     }
@@ -204,7 +204,7 @@ $( document ).ready(function() {
     if (json.recommendServices && json.recommendServices.length > 0) {
       localStorage.setItem('recommendServices', JSON.stringify(json.recommendServices))
     }
-  });
+  }); */
 
   // 查询最新版本
   $.getJSON("https://jjb.zaoshu.so/updates?buildid={{buildid}}&browser={{browser}}", function (lastVersion) {

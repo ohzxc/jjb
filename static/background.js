@@ -555,7 +555,7 @@ chrome.notifications.onClicked.addListener(function (notificationId) {
             })
           } else {
             chrome.tabs.create({
-              url: "https://zaoshu.so/coupon"
+              url: "https://www.jd.com"
             })
           }
       }
@@ -586,7 +586,7 @@ chrome.notifications.onButtonClicked.addListener(function (notificationId, butto
         break;
       default:
         chrome.tabs.create({
-          url: "https://zaoshu.so/coupon"
+          url: "https://www.jd.com"
         })
     }
   }
@@ -828,9 +828,9 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
       }
       // 价格追踪
       savePrice(priceInfo)
-      if (!disable_pricechart && priceInfo.sku) {
-        reportPrice(priceInfo)
-      }
+      // if (!disable_pricechart && priceInfo.sku) {
+      //   reportPrice(priceInfo)
+      // }
       sendResponse(priceInfo)
       break;
     // 保存登录状态

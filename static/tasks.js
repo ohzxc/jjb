@@ -85,8 +85,8 @@ const tasks = [
     mode: 'iframe',
     type: ['pc'],
     schedule: [10, 12, 14, 18, 20],
-    frequencyOption: ['daily', 'never'],
-    frequency: 'daily',
+    frequencyOption: ['never', 'daily'],
+    frequency: 'never',
     location: {
       host: ['a.jd.com']
     },
@@ -362,6 +362,14 @@ let getTask = function (taskId, currentPlatform) {
   // 选择运行平台
   if (!task.url) {
     taskStatus.url = taskStatus.platform ? task.src[taskStatus.platform] : task.src[task.type[0]];
+    if (/zaoshu\.so/.test(taskStatus.url)) {
+      console.log('发现返利链接，替换成 baseUrl', taskStatus.url)
+      if (task.baseUrl) {
+        taskStatus.url = task.baseUrl
+      } else {
+        taskStatus.url = ''
+      }
+    }
   }
   // 如果任务无可运行平台
   if (!taskStatus.platform) {

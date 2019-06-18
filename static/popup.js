@@ -168,7 +168,7 @@ $( document ).ready(function() {
   tippy('.tippy')
 
   // 随机显示 Tips
-  changeTips()
+  // changeTips()
 
   // 查询最新版本
   $.getJSON("https://jjb.zaoshu.so/updates?buildid={{buildid}}&browser={{browser}}", function (lastVersion) {

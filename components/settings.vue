@@ -181,7 +181,7 @@
                 </div>
               </div>
             </div>
-            <div class="other_actions">
+            <!-- <div class="other_actions">
               <div class="recommendation">
                 <h3 style="text-align: center;color: #666;">服务推荐</h3>
                 <p class="recommendServices">
@@ -233,7 +233,7 @@
                   data-tippy-content="关注京价保的公众号"
                 >京价保公众号</a>
               </p>
-            </div>
+            </div> -->
           </div>
           <div class="other_settings settings_box" style="display: none">
             <div class="weui-cells weui-cells_form">
@@ -400,7 +400,7 @@
         </form>
       </div>
     </div>
-    <div class="bottom-box">
+    <!-- <div class="bottom-box">
       <div class="avatar">
         <a
           id="loginState"
@@ -451,7 +451,7 @@
           >领PLUS券</a>
         </span>
       </div>
-    </div>
+    </div> -->
   </div>
 </template>
 

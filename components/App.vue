@@ -35,14 +35,14 @@
             最近通知
             <span class="weui-badge" v-if="unreadCount > 0">{{unreadCount}}</span>
           </div>
-          <div :class="`weui-navbar__item zaoshu-tab ${contentType == 'discounts' ? 'weui-bar__item_on' : ''}`" @click="switchContentType('discounts')">
+          <!-- <div :class="`weui-navbar__item zaoshu-tab ${contentType == 'discounts' ? 'weui-bar__item_on' : ''}`" @click="switchContentType('discounts')">
             <img src="../static/image/zaoshu.png" alt="" class="zaoshu-icon">
             枣树集惠
             <span
               class="weui-badge weui-badge_dot new-discounts"
               v-if="newDiscounts"
             ></span>
-          </div>
+          </div> -->
         </div>
         <div class="weui-tab__panel">
           <div id="orders" v-if="contentType == 'orders'" class="weui-cells contents-box orders">
@@ -50,7 +50,7 @@
               <li
                 v-for="order in orders"
                 :key="order.id"
-                v-show="(order.promotionInfo && hiddenPromotionIds.indexOf(order.id) < 0) || (order.goods && order.goods.length > 0)"
+                v-show="!order.promotionInfo && (order.goods && order.goods.length > 0)"
               >
                 <div class="order_time">
                   <span v-show="order.displayTime">下单时间： {{order.displayTime}}</span>
@@ -117,7 +117,7 @@
                           </div>
                         </div>
                         <p v-if="good.sku">
-                          <a v-if="!disableOrderLink" :href="`https://jjb.zaoshu.so/good/${good.sku}`" target="_blank"> {{good.name}}</a>
+                          <a v-if="!disableOrderLink" :href="`https://item.jd.com/${good.sku}.html`" target="_blank" :title="`https://item.jd.com/${good.sku}.html`"> {{good.name}}</a>
                           <a v-else>{{good.name}}</a>
                           <span
                             class="count"
@@ -243,7 +243,7 @@
                       >{{message.coupon.name}}</a>
                       <a
                         v-else
-                        href="https://jjb.zaoshu.so/event/jdc?e=0&p=AyIPZRprFDJWWA1FBCVbV0IUWVALHFRBEwQAQB1AWQkrW1N8UGM3WyZ1VmxSCHMIE1dEbytsKxkOfARUG1IJAhMbVR5KFQsZBFUQWhAyEQ5UH10XARcFZRhYFAQRN2UbWiVJfAZlG1sdBhEBXR5dFDISA1cTXxUBFwBQG1McMhU3F18ES1kiN2UrayUCEjdVKwRRX08%3D&t=W1dCFFlQCxxUQRMEAEAdQFkJ"
+                        href="https://www.jd.com/"
                         target="_blank"
                       >{{message.coupon.name}}</a>
                     </div>
@@ -413,7 +413,7 @@ export default {
       stateText: stateText,
       newDiscounts: false,
       loadingOrder: false,
-      showPopup: true,
+      showPopup: false,
       showLoginState: false,
       currentVersion: "{{version}}",
       disableOrderLink: getSetting("disabled_link") == "checked" ? true : false,

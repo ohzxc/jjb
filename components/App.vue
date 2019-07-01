@@ -117,7 +117,7 @@
                           </div>
                         </div>
                         <p v-if="good.sku">
-                          <a v-if="!disableOrderLink" :href="`https://jjb.zaoshu.so/good/${good.sku}`" target="_blank"> {{good.name}}</a>
+                          <a v-if="!disableOrderLink" :href="`https://item.jd.com/${good.sku}.html`" target="_blank"> {{good.name}}</a>
                           <a v-else>{{good.name}}</a>
                           <span
                             class="count"

@@ -1,3 +1,7 @@
+编译方式：`VERSION=2.6.5 BROWSER=chrome yarn build`   
+Chrome 编译：`Pack extension` -> `jjb/build` + `jjb/build.pem`
+-----
+
 # 京价保 - 自动申请京东价格保护
 
 京价保是一个帮你监控商品价格变化自动申请京东价格保护，顺便帮你签到领京豆、钢镚的 Chrome 拓展。

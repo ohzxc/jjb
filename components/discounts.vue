@@ -246,7 +246,7 @@ export default {
 <style scoped>
 .tabs {
   height: 40px;
-  width: 200px;
+  width: 210px;
   background: #fff;
   float: left;
 }

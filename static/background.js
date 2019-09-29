@@ -1,76 +1,14 @@
 $ = window.$ = window.jQuery = require('jquery')
 import * as _ from "lodash"
 import Logline from 'logline'
-import Dexie from 'dexie';
 import {DateTime} from 'luxon'
 import {priceProUrl, mapFrequency, getTask, getTasks} from './tasks'
 import {rand, getSetting, saveSetting} from './utils'
 import {getLoginState} from './account'
 
+import {findGood, findOrder, updateOrders, newMessage, updateMessages, addTaskLog, findAndUpdateTaskResult} from './db'
 
 Logline.using(Logline.PROTOCOL.INDEXEDDB)
-
-//
-// Declare Database
-//
-const db = new Dexie("orders");
-db.version(1).stores({ orders: "++id,timestamp" });
-db.version(1).stores({ messages: "++id,type,timestamp" });
-
-db.version(2).stores({
-  orders: "++id,timestamp",
-  messages: "++id,type,timestamp",
-});
-
-async function findGood(orderId, good) {
-  await db.orders.where('id').equals(orderId).modify(order => {
-    order.goods.push(good);
-  });
-}
-
-async function findOrder(orderId, data) {
-  let order = await db.orders.where('id').equals(orderId).toArray();
-  if (order && order.length > 0) return await db.orders.update(orderId, data)
-  let orderInfo = Object.assign(data, {
-    id: orderId,
-  })
-  return await db.orders.add(orderInfo);
-}
-
-async function updateOrders() {
-  let proDays = getSetting('price_pro_days', 15)
-  let proTime = Date.now() - 60*60*1000*24*proDays;
-  let orders = await db.orders.where('timestamp').above(proTime).reverse().sortBy('timestamp')
-
-  if (orders && orders.length > 0) {
-    orders = orders.filter(order => order.goods && order.goods.length > 0);
-  }
-  saveSetting('jjb_orders', orders)
-  chrome.runtime.sendMessage({
-    action: "orders_updated",
-    orders: orders
-  });
-}
-
-async function newMessage(messageId, data) {
-  let message = await db.messages.where('id').equals(messageId).toArray();
-  if (message && message.length > 0) return await db.messages.update(messageId, data)
-  let messageInfo = Object.assign(data, {
-    id: messageId,
-  })
-  return await db.messages.add(messageInfo);
-}
-
-async function updateMessages() {
-  // 最多只展示最近 30 天的消息
-  let last30Day = Date.now() - 60*60*1000*24*30;
-  let messages = await db.messages.where('timestamp').above(last30Day).reverse().sortBy('timestamp')
-  saveSetting('jjb_messages', messages)
-  chrome.runtime.sendMessage({
-    action: "messages_updated",
-    messages: messages
-  });
-}
 
 var logger = {}
 var autoLoginQuota = {}
@@ -214,6 +152,7 @@ function saveJobStack(jobStack) {
 // 根据页面查找匹配的任务
 function findTasksByLocation(location) {
   let taskList = getTasks()
+  console.log('taskList', taskList)
   let locationTask = taskList.filter(task => task.location && Object.keys(task.location).length > 0)
   let matchedTasks =[]
   locationTask.forEach((task) => {
@@ -269,6 +208,7 @@ function pushJob(task, jobStack) {
 function findJobs(platform) {
   let jobStack = getSetting('jobStack', [])
   let taskList = getTasks(platform)
+  console.log('taskList', taskList)
 
   taskList.forEach(function(task) {
     if (task.suspended || task.deprecated) {
@@ -292,7 +232,7 @@ function findJobs(platform) {
         break;
       case 'daily':
         // 如果从没运行过，或者上次运行不在今天，或者是签到任务但未完成
-        if (!task.last_run_at || !(DateTime.local().hasSame(DateTime.fromMillis(task.last_run_at), 'day'))) {
+        if (!task.last_run_at || !(DateTime.local().hasSame(DateTime.fromMillis(task.last_run_at), 'day')) || (task.checkin && !task.checked)) {
           jobStack = pushJob(task, jobStack)
         }
         break;
@@ -303,18 +243,8 @@ function findJobs(platform) {
   saveJobStack(jobStack)
 }
 
-function incrementUsage(task) {
-  let year = new Date().getFullYear()
-  let week = DateTime.local().weekNumber
-  let today = DateTime.local().toFormat("o")
-  let hour = new Date().getHours()
-  saveSetting(`temporary:usage-${task.id}_${year}d:${today}:h:${hour}`, task.usage.hour + 1)
-  saveSetting(`temporary:usage-${task.id}_${year}w:${week}`, task.usage.weekly  + 1)
-  saveSetting(`temporary:usage-${task.id}_${year}d:${today}`, task.usage.daily  + 1)
-}
-
 // 执行组织交给我的任务
-function runJob(taskId, force = false) {
+async function runJob(taskId, force = false) {
   // 不在凌晨阶段运行非强制任务
   if (DateTime.local().hour < 6 && !force) {
     return console.log('Silent Night')
@@ -337,16 +267,16 @@ function runJob(taskId, force = false) {
 
   // 如果任务已暂停
   if (task.pause) {
-    return log('job', task.title, '已被暂停')
+    return log('job', task, '已被暂停')
   }
 
   // 如果任务已挂起或已经弃用 且不是强制执行
   if ((task.suspended || task.deprecated) && !force) {
-    return log('job', task.title, '由于账号未登录已暂停运行')
+    return log('job', task, '由于账号未登录已暂停运行')
   }
   if (task.frequency != 'never' || force) {
     log('background', "run", task)
-    incrementUsage(task)
+    await addTaskLog(task)
     if (task.mode == 'iframe') {
       openByIframe(task.url, 'job')
     } else {
@@ -478,6 +408,9 @@ $( document ).ready(function() {
 
   // 设置默认值
   setDefaultSetting()
+
+  // 移除临时缓存项
+  removeExpiredLocalStorageItems()
 
 })
 
@@ -728,7 +661,6 @@ function reportPrice(priceInfo) {
   log('background', 'reportPrice', priceInfo)
   $.ajax({
     method: "POST",
-    type: "POST",
     url: `https://jjb.zaoshu.so/price/${priceInfo.sku}`,
     data: {
       name: priceInfo.name,
@@ -738,6 +670,20 @@ function reportPrice(priceInfo) {
       plus_price: priceInfo.plus_price ? Number(priceInfo.plus_price) : null,
       pingou_price: priceInfo.pingou_price ? Number(priceInfo.pingou_price) : null,
     },
+    timeout: 3000,
+    dataType: "json"
+  })
+}
+
+// 报告优惠信息
+function reportPromotions(promInfo) {
+  let disable_pricechart = (getSetting('disable_pricechart') ? getSetting('disable_pricechart') == 'checked' : false)
+  if (disable_pricechart || !promInfo.sku) return
+  log('background', 'reportPromotions', promInfo)
+  $.ajax({
+    method: "PUT",
+    url: `https://jjb.zaoshu.so/price/${promInfo.sku}/promotions`,
+    data: promInfo,
     timeout: 3000,
     dataType: "json"
   })
@@ -832,6 +778,10 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
       //   reportPrice(priceInfo)
       // }
       sendResponse(priceInfo)
+      break;
+    // 促销信息
+    case 'promotions':
+      reportPromotions(msg)
       break;
     // 保存登录状态
     case 'saveLoginState':
@@ -954,15 +904,16 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
       localStorage.setItem(`temporary_job${task.id}_frequency`, 'onetime');
       // 任务因为频率受限无法运行
       if (task.pause) {
+        let taskPauseMsg = `${task.title}已达到最大时段频率，每小时：${task.rateLimit.hour}，请勿重复运行`
         sendChromeNotification(new Date().getTime().toString(), {
           type: "basic",
           title: "任务因为频率受限无法运行",
-          message: task.title + "已达到最大时段频率，每小时：" + task.rateLimit.hour,
+          message: taskPauseMsg,
           iconUrl: 'static/image/128.png'
         })
         sendResponse({
           result: "pause",
-          message: "任务因为频率受限无法运行"
+          message: taskPauseMsg
         })
       } else {
         runJob(task.id, true)
@@ -979,38 +930,22 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
         })
       }
       break;
-    case 'notice':
+    case 'priceProtectionNotice':
       var play_audio = getSetting('play_audio')
-      if (msg.batch == 'jiabao') {
-        var hide_good = getSetting('hide_good')
-        if (play_audio && play_audio == 'checked' || msg.test) {
-          var myAudio = new Audio();
-          myAudio.src = "static/audio/price_protection.ogg";
-          myAudio.play();
-        }
-        if (!hide_good || hide_good != 'checked') {
-          msg.content = (msg.product_name ? msg.product_name.substr(0, 22) : '') + msg.content
-        }
+      var hide_good = getSetting('hide_good')
+      if (play_audio && play_audio == 'checked' || msg.test) {
+        var myAudio = new Audio();
+        myAudio.src = "static/audio/price_protection.ogg";
+        myAudio.play();
       }
-      if (msg.batch == 'rebate') {
-        if (play_audio && play_audio == 'checked' || msg.test) {
-          var myAudio = new Audio();
-          myAudio.src = "static/audio/rebate.ogg";
-          myAudio.play();
-        }
-      }
-      let icon = 'static/image/128.png'
-      if (msg.batch == 'rebate') {
-        icon = 'static/image/rebate.png'
-      }
-      if (msg.batch == 'jiabao') {
-        icon = 'static/image/money.png'
+      if (!hide_good || hide_good != 'checked') {
+        msg.content = (msg.product_name ? msg.product_name.substr(0, 22) : '') + msg.content
       }
       sendChromeNotification(new Date().getTime().toString() + '_' + msg.batch, {
         type: "basic",
         title: msg.title,
         message: msg.content,
-        iconUrl: icon
+        iconUrl: 'static/image/money.png'
       })
       break;
     case 'checkin_notice':
@@ -1055,8 +990,8 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
       }
       break;
     // 运行状态
-    case 'run_status':
-      task = getTask(msg.jobId)
+    case 'runStatus':
+      task = getTask(msg.task.id)
       localStorage.setItem('job' + task.id + '_lasttime', new Date().getTime())
       saveLoginState({
         content: task.title + "成功运行",
@@ -1178,9 +1113,21 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
   }
   // 更新图标
   updateIcon()
+  // task log
+  if (msg.log && msg.task) {
+    setTimeout(async () => {
+      await findAndUpdateTaskResult(msg.task.id, {
+        action: msg.action,
+        title: msg.title,
+        content: msg.content,
+        timestamp: Date.now()
+      })
+    }, 50);
+  }
   // 保存消息
   switch (msg.action) {
     case 'notice':
+    case 'priceProtectionNotice':
     case 'couponReceived':
     case 'goldCoinReceived':
     case 'checkin_notice':
@@ -1195,6 +1142,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
         })
       }
       let message = {
+        taskId: msg.task ? msg.task.id : null,
         type: msg.type || msg.action || msg.text, // 通知的类型
         batch: msg.batch, // 批次，通常是优惠券的属性
         reward: msg.reward, // 奖励的类型

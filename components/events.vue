@@ -15,10 +15,11 @@ import { Hooper, Slide, Navigation as HooperNavigation } from 'hooper';
 import 'hooper/dist/hooper.css';
 
 import weui from "weui.js";
+
 export default {
   name: "report",
   props: ["events"],
-    components: {
+  components: {
     Hooper,
     Slide,
     HooperNavigation
@@ -39,7 +40,7 @@ export default {
   text-align: center;
 }
 .hooper p.title{
-      position: absolute;
+    position: absolute;
     bottom: 0px;
     text-align: center;
     width: 100%;

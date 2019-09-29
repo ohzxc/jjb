@@ -19,14 +19,15 @@ module.exports = {
   saveSetting: function (settingKey, value) {
     return localStorage.setItem(settingKey, JSON.stringify(value))
   },
-  readableTime: function (datetime) {
-    if (DateTime.local().hasSame(datetime, 'day')) {
-      return '今天 ' + datetime.setLocale('zh-cn').toLocaleString(DateTime.TIME_SIMPLE)
+  readableTime: function (dateTime, withSeconds = false) {
+    const mode = withSeconds ? DateTime.TIME_24_WITH_SECONDS : DateTime.TIME_SIMPLE
+    if (DateTime.local().hasSame(dateTime, 'day')) {
+      return '今天 ' + dateTime.setLocale('zh-cn').toLocaleString(mode)
     }
-    if (DateTime.local().hasSame(datetime.plus({ days: 1 }), 'day')){
-      return '昨天 ' + datetime.setLocale('zh-cn').toLocaleString(DateTime.TIME_SIMPLE)
+    if (DateTime.local().hasSame(dateTime.plus({ days: 1 }), 'day')){
+      return '昨天 ' + dateTime.setLocale('zh-cn').toLocaleString(mode)
     }
-    return datetime.setLocale('zh-cn').toFormat('f')
+    return dateTime.setLocale('zh-cn').toFormat('f')
   },
   versionCompare: function (v1, v2, options) {
     var lexicographical = options && options.lexicographical,

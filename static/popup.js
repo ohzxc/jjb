@@ -24,58 +24,6 @@ $.each(['show', 'hide'], function (i, ev) {
   };
 });
 
-function switchWechat(target) {
-  let to = target || 'ming'
-  if (to == 'samedi') {
-    $("#dialogs .weixin_pay .ming").hide()
-    $("#dialogs .weixin_pay .samedi").show()
-  } else {
-    $("#dialogs .weixin_pay .ming").show()
-    $("#dialogs .weixin_pay .samedi").hide()
-  }
-}
-
-function switchAlipay(target) {
-  let to = target || ($("#dialogs .alipay_pay .alipay").is(':visible') ? 'redpack' : 'alipay')
-  if (to == 'redpack') {
-    console.log('show redpack')
-    $("#dialogs .alipay_pay .alipay").hide()
-    $("#dialogs .alipay_pay .redpack").show()
-  } else {
-    console.log('show alipay')
-    $("#dialogs .alipay_pay .redpack").hide()
-    $("#dialogs .alipay_pay .alipay").show()
-  }
-}
-
-function showReward() {
-  switchPayMethod('weixin')
-  let time = Date.now().toString()
-  if (time[time.length - 1] < 3) {
-    setTimeout(() => {
-      switchPayMethod('alipay')
-    }, 50);
-  }
-}
-
-
-function switchPayMethod(payMethod, target) {
-  $("#dialogs").show()
-  if (payMethod == 'weixin') {
-    $('.segmented-control .weixin').addClass('checked')
-    $('.segmented-control .alipay').removeClass('checked')
-    $('.weixin_pay').show()
-    $('.alipay_pay').hide()
-    switchWechat(target)
-  } else {
-    $('.segmented-control .weixin').removeClass('checked')
-    $('.segmented-control .alipay').addClass('checked')
-    $('.weixin_pay').hide()
-    $('.alipay_pay').show()
-    switchAlipay(target)
-  }
-}
-
 // 试听通知
 function listenVoice(type, batch) {
   chrome.runtime.sendMessage({
@@ -278,20 +226,6 @@ $( document ).ready(function() {
   $("#listen").on("click", function () {
     $("#listenAudio").show()
   })
-
-  $("#know_more").on("click", function () {
-    $("#loginNotice .detail").show()
-    $("#know_more").hide()
-  })
-
-  $(".switch-paymethod").on("click", function () {
-    let to = $(this).data('to')
-    let target = $(this).data('target')
-    if ($(this).hasClass('switch-paymethod')){
-      switchPayMethod(to, target)
-    }
-  })
-
 
   $("#openWechatCard").on("click", function () {
     $("img.jjb-official").attr('src', "http://jjbcdn.zaoshu.so/wechat/qrcode_for_gh_21550d50400c_430.jpg")

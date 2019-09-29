@@ -29,6 +29,15 @@ $( document ).ready(function() {
     $(".first_area_md").append(priceChartDOM);
   }
 
+  function timestampToDateNumber(timestamp) {
+    let currentDate = new Date(timestamp).toLocaleDateString(undefined, {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    })
+    return currentDate.replace(/\//g, '');
+  }
+
   function getPriceChart(sku, days) {
     $.ajax({
       method: "GET",
@@ -44,6 +53,8 @@ $( document ).ready(function() {
             padding: [50, '5%', 80, '6%'],
             height: 300
           });
+          console.log('data.promotionLogs', data.promotionLogs)
+          console.log('data.chart', data.chart)
           chart.source(data.chart, {
             timestamp: {
               type: 'time',
@@ -53,6 +64,31 @@ $( document ).ready(function() {
             }
           });
           chart.line().position('timestamp*value').shape('hv').color('key');
+          chart.tooltip(
+            {
+              useHtml:true,
+              htmlContent:function(title, items){
+                let itemDom = ""
+                let promotionsDom = ""
+                let promotions = []
+                items.forEach(item => {
+                  const itemTime = timestampToDateNumber(item.point._origin.timestamp)
+                  promotions = data.promotionLogs.find(function(promotion) {
+                    return promotion.date == itemTime;
+                  });
+                  itemDom += `<li style="color:${item.point.color}"><span class="price-type">${item.name}</span>: ${item.value} 元</li>`
+                });
+                promotions && promotions.detail && promotions.detail.forEach(item => {
+                  promotionsDom += `<li><span class="tag">${item.typeName}</span><span class="description">${item.description}</span></li>`
+                });
+                return `<div class="g2-tooltip">
+                  <div class="g2-tooltip-title" style="margin-bottom: 4px;">${title}</div>
+                  <ul class="g2-tooltip-list">${itemDom}</ul>
+                  <ul class="promotions">${promotionsDom}</ul>
+                </div>`
+              }
+            }
+         );
           chart.render();
         } else {
           $("#jjbPriceChart").html(`<div class="no_data">暂无数据</div>`)

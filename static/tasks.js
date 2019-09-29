@@ -1,6 +1,7 @@
 import { DateTime } from 'luxon'
 import { getLoginState } from './account'
 import { getSetting, readableTime } from './utils'
+import { getTaskUsageImmediately } from './db'
 
 const priceProUrl = "https://msitepp-fm.jd.com/rest/priceprophone/priceProPhoneMenu"
 const frequencyOptionText = {
@@ -38,6 +39,29 @@ const tasks = [
     }
   },
   {
+    id: '15',
+    src: {
+      pc: 'https://jjb.zaoshu.so/event/coupon',
+    },
+    url: 'https://a.jd.com',
+    title: '全品类券',
+    description: "每天尝试领取全品类券（29减2/105减5/500减20/1000减30）",
+    schedule: [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24],
+    mode: 'iframe',
+    location: {
+      host: ['a.jd.com'],
+      pathname: ['/']
+    },
+    type: ['pc'],
+    frequencyOption: ['5h', 'daily', 'never'],
+    frequency: '5h',
+    rateLimit:{
+      weekly: 55,
+      daily: 10,
+      hour: 2
+    }
+  },
+  {
     id: '3',
     src: {
       m: 'https://plus.m.jd.com/index',
@@ -61,16 +85,20 @@ const tasks = [
   {
     id: '4',
     src: {
-      m: 'https://m.jr.jd.com/mjractivity/rn/couponCenter/index.html?RN=couponCenter&tab=20',
+      m: 'https://m.jr.jd.com/member/rightsCenter/#/coupon',
     },
     title: '精选白条券',
     mode: 'iframe',
     frequencyOption: ['2h', '5h', 'daily', 'never'],
     type: ['m'],
     frequency: '5h',
+    location: {
+      host: ['m.jr.jd.com'],
+      pathname: ['/member/rightsCenter/']
+    },
     rateLimit:{
-      weekly: 14,
-      daily: 5,
+      weekly: 32,
+      daily: 4,
       hour: 2
     }
   },
@@ -96,8 +124,8 @@ const tasks = [
       successKeyWord: "成功",
     },
     rateLimit:{
-      weekly: 14,
-      daily: 5,
+      weekly: 32,
+      daily: 4,
       hour: 2
     }
   },
@@ -115,8 +143,8 @@ const tasks = [
     frequencyOption: ['daily', 'never'],
     frequency: 'daily',
     rateLimit:{
-      weekly: 14,
-      daily: 5,
+      weekly: 32,
+      daily: 4,
       hour: 2
     }
   },
@@ -132,14 +160,18 @@ const tasks = [
     type: ['m'],
     frequencyOption: ['daily', 'never'],
     frequency: 'daily',
+    location: {
+      host: ['coin.jd.com'],
+      pathname: ['/m/gb/index.html']
+    },
     rateLimit:{
-      weekly: 14,
-      daily: 5,
+      weekly: 32,
+      daily: 4,
       hour: 2
     }
   },
   {
-    id: '6',
+    id: '6', // 已失效
     src: {
       m: 'https://m.jr.jd.com/spe/qyy/main/index.html?userType=41',
     },
@@ -152,15 +184,16 @@ const tasks = [
     frequencyOption: ['daily', 'never'],
     frequency: 'daily',
     rateLimit:{
-      weekly: 14,
-      daily: 5,
+      weekly: 32,
+      daily: 4,
       hour: 2
-    }
+    },
+    deprecated: true
   },
   {
     id: '9',
     src: {
-      m: 'https://m.jr.jd.com/vip/sign/html/index.html',
+      m: 'https://uf.jr.jd.com/activities/sign/v4/html/index.html',
     },
     title: '金融会员签到',
     description: "京东金融会员签到，需要实名认证",
@@ -171,8 +204,8 @@ const tasks = [
     frequencyOption: ['daily', 'never'],
     frequency: 'daily',
     rateLimit:{
-      weekly: 14,
-      daily: 5,
+      weekly: 32,
+      daily: 4,
       hour: 2
     }
   },
@@ -320,18 +353,10 @@ let getTask = function (taskId, currentPlatform) {
       hour: 2
     }
   }, tasks.find(t => t.id == taskId.toString()), parameters, taskSettings)
-  let year = new Date().getFullYear()
-  let week = DateTime.local().weekNumber
-  let today = DateTime.local().toFormat("o")
-  let hour = new Date().getHours()
   let taskStatus = {}
   taskStatus.platform = findTaskPlatform(task);
   taskStatus.frequency = getSetting(`job${taskId}_frequency`, task.frequency)
-  taskStatus.usage = {
-    hour: getSetting(`temporary:usage-${taskId}_${year}d:${today}:h:${hour}`, 0),
-    daily: getSetting(`temporary:usage-${taskId}_${year}d:${today}`, 0),
-    weekly: getSetting(`temporary:usage-${taskId}_${year}w:${week}`, 0)
-  }
+  taskStatus.usage = getTaskUsageImmediately(taskId)
   taskStatus.last_run_at = localStorage.getItem(`job${task.id}_lasttime`) ? parseInt(localStorage.getItem(`job${task.id}_lasttime`)) : null
   taskStatus.last_run_description = taskStatus.last_run_at ? "上次运行： " + readableTime(DateTime.fromMillis(Number(taskStatus.last_run_at))) : "从未执行";
 
@@ -379,10 +404,13 @@ let getTask = function (taskId, currentPlatform) {
   // 如果超出限制
   if ((task.rateLimit.weekly && taskStatus.usage.weekly >= task.rateLimit.weekly) || taskStatus.usage.daily >= task.rateLimit.daily || taskStatus.usage.hour >= task.rateLimit.hour) {
     taskStatus.pause = true;
+    taskStatus.pause_description = `超出频率限制`
+
   }
   // 如果是新任务
   if (task.new) {
     taskStatus.pause = true;
+    taskStatus.pause_description = `新任务`
   }
   return Object.assign(task, taskStatus)
 }

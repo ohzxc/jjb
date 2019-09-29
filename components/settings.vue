@@ -124,12 +124,10 @@
             <div class="tips bottom-tips">
               <p class="page__desc">
                 <a id="notice">京东页面经常更新，唯有你的支持才能让京价保保持更新。</a>
-                <a
-                  href="#"
+                <span
                   class="weui-btn weui-btn_mini weui-btn_primary"
-                  data-to="weixin"
-                  data-target="ming"
-                >打赏</a>
+                  @click="switchPaymethod('wechat', 'ming')"
+                >打赏</span>
               </p>
             </div>
           </div>
@@ -171,6 +169,7 @@
                     播放提示音效
                     <i
                       id="listen"
+                      @click="listenAudio = true"
                       class="weui-icon-info-circle tippy"
                       data-tippy-content="试听全部提示音效"
                     ></i>
@@ -415,21 +414,18 @@
           <a
             href="#"
             class="switch-paymethod tippy"
+            @click="switchPaymethod('wechat', 'ming')"
             data-tippy-placement="top-start"
             data-tippy-content="打赏开发者"
-            data-to="
-              wechat"
-            data-target="ming"
           >打赏开发者</a>
         </span>
         <span class="el-tag el-tag--danger">
           <a
             href="#"
             class="switch-paymethod"
+            @click="switchPaymethod('alipay', 'redpack')"
             title="天天领支付宝红包"
             v-tippy
-            data-to="alipay"
-            data-target="redpack"
           >支付宝红包</a>
         </span>
         <span class="el-tag el-tag--warning">
@@ -456,16 +452,17 @@
 </template>
 
 <script>
-import { frequencyOptionText, getTasks } from "../static/tasks";
+import { frequencyOptionText, getTasks  } from "../static/tasks";
 import { recommendServices } from "../static/variables";
 import { getSetting, saveSetting } from "../static/utils";
 import taskSetting from "./task-setting.vue";
+import support from './support.vue';
 
 import weui from "weui.js";
 export default {
   name: "settings",
   props: ["loginState"],
-  components: { taskSetting },
+  components: { taskSetting, support },
   data() {
     return {
       frequencyOptionText: frequencyOptionText,
@@ -474,7 +471,11 @@ export default {
       currentBrowser: "{{browser}}",
       currentVersion: "{{version}}",
       scienceOnline: false,
+      listenAudio: false,
       taskType: 'enabled',
+      paymethod: 'weixin',
+      target: 'ming',
+      showSupport: false,
       currentSettingTask: null,
       taskList: [],
       hover: null
@@ -531,6 +532,11 @@ export default {
     showLogin: function() {
       this.$emit("show-login");
     },
+    switchPaymethod: function(paymethod, target) {
+      this.paymethod = paymethod
+      this.target = target
+      this.showSupport = true
+    },
     updateDisableOrderLink: function() {
       this.$emit("update-order-link");
     },
@@ -549,7 +555,9 @@ export default {
           if (!hideNotice) {
             if (response.result == "success") {
               weui.toast("手动运行成功", 3000);
-            } else if (response.message) {
+            } else if (response.result == "pause") {
+              weui.alert(response.message, { title: "任务已暂停运行" });
+            } else {
               weui.alert(response.message, { title: "任务暂未运行" });
             }
           }

@@ -50,7 +50,7 @@
                   </div>
                   <div class="weui-cell__bd">
                     <p>移动网页</p>
-                    <p style="font-size: 13px;color: #888888;">绝大部分任务如价格保护使用</p>
+                    <p style="font-size: 13px;color: #888888;">绝大部分签到任务使用</p>
                   </div>
                   <div class="weui-cell__ft login-status" style="font-size: 0">
                     <span
@@ -66,8 +66,8 @@
               </a>
             </div>
           </div>
-          <p id="know_more">了解更多关于京价保如何使用账号</p>
-          <div class="detail">
+          <p id="know_more" @click="showDetail = !showDetail">了解更多关于京价保如何使用账号</p>
+          <div class="detail" v-if="showDetail">
             <h3>京价保如何使用你的账号来完成任务</h3>
             <p>如你所知，京价保是一个浏览器插件。在你的授权下，京价保代替你自动访问京东的网页来执行一系列操作。京价保的
               <b>所有功能均为京东官方网页所提供</b>的功能。它所做的一切就是免于你逐一打开页面点击按钮，只不过它不知疲倦，日复一日的执行这些行为。
@@ -105,7 +105,8 @@ export default {
   props: ["state"],
   data() {
     return {
-      stateText: stateText
+      stateText: stateText,
+      showDetail: false
     };
   },
   methods: {

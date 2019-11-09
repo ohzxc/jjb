@@ -10,12 +10,12 @@
     "dev": "node_modules/.bin/gulp dev"
   },
   "dependencies": {
-    "@antv/g2": "^3.2.8",
+    "@antv/g2": "^3.5.8-beta.3",
     "@sunoj/touchemulator": "^0.0.1",
     "babel-plugin-transform-runtime": "^6.23.0",
     "dexie": "^2.0.4",
     "dialog-polyfill": "^0.4.10",
-    "gulp": "^4.0.0",
+    "gulp": "^4.0.2",
     "gulp-clean-css": "^3.9.0",
     "gulp-concat": "^2.6.1",
     "gulp-preprocess": "^2.0.0",

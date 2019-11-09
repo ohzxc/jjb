@@ -1,6 +1,9 @@
 ---
 name: Bug report
 about: Create a report of bug / 如果你认为你发现了一项代码问题
+title: ''
+labels: ''
+assignees: ''
 
 ---
 

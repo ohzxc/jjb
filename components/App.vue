@@ -192,7 +192,7 @@
                       v-model="selectedTab"
                       tabindex="-1"
                       class="el-radio-button__orig-radio"
-                      value="notice"
+                      value="priceProtectionNotice"
                     >
                     <span class="el-radio-button__inner">价保记录</span>
                   </label>
@@ -220,7 +220,7 @@
               <li v-for="(message, index) in messages" :key="index">
                 <div
                   :class="`weui-panel__bd message-item type-${message.type}`"
-                  v-show="!selectedTab || selectedTab == message.type"
+                  v-show="!selectedTab || selectedTab == message.type || (selectedTab == 'priceProtectionNotice' && message.type == 'notice')"
                 >
                   <div class="weui-media-box weui-media-box_text">
                     <h4 class="weui-media-box__title message">

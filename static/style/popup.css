@@ -469,7 +469,6 @@ a.buy-btn:hover{
     display: block;
 }
 
-#dialogs,
 #changeLogs {
     display: none;
 }
@@ -517,10 +516,6 @@ a.buy-btn:hover{
 
 .time{
     text-align: right;
-}
-
-.alipay_pay{
-    display: none;
 }
 
 .alipay_pay img{
@@ -776,8 +771,7 @@ img.weui-tabbar__icon {
 #wechatDialags,
 #feedbackDialags,
 #faqDialags,
-#jEventDialags,
-#listenAudio {
+#jEventDialags{
     display: none;
 }
 
@@ -891,21 +885,13 @@ button.Button.messages-tab.Button--plain:focus {
     background-image: url(../image/coin.png);
 }
 
-.message .notice {
-    background: url(../image/notice.png) no-repeat;
+.message .notice, .message .priceProtectionNotice {
+    background: url(../image/money.png) no-repeat;
     width: 20px;
     height: 20px;
     background-size: 20px;
     display: inline-block;
     margin-bottom: -3px;
-}
-
-.message .notice.rebate {
-    background-image: url(../image/rebate.png);
-}
-
-.message .notice.jiabao {
-    background-image: url(../image/money.png);
 }
 
 .coupon-box{
@@ -1211,7 +1197,6 @@ button.Button.messages-tab.Button--plain:focus {
 
 
 .loginNotice .detail {
-    display: none;
     padding-top: 20px;
 }
 

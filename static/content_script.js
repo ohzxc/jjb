@@ -911,6 +911,42 @@ function getCoin(task) {
   }
 }
 
+
+// 生鲜价保模式
+function modifyRefundType(mode = "m") {
+  getSetting('refund_type', (setting) => {
+    if (!setting || setting == "") setting = "1"
+    if (mode == "pc") {
+      $("select.modifyRefundType").each(function(index) {
+        if ($(this).val() == setting) return
+        setTimeout(() => {
+          $(this).val(setting)
+          $(this)[0].dispatchEvent(new Event('change', { bubbles: true }))
+        }, 1000 * index);
+      });
+    }
+    if (mode == "m") {
+      $("a.type-modify").each(function(index) {
+        setTimeout(() => {
+          simulateClick($(this))
+          setTimeout(() => {
+            $(".type-wrapper .list .item").each(function() {
+              if ($(this).attr("value") == setting) {
+                if ($(this).hasClass("selected")) return
+                simulateClick($(this))
+                setTimeout(() => {
+                  simulateClick($(".type-wrapper .close-modfiy-type"))
+                }, 500);
+              }
+            })
+          }, 1000);
+
+        }, 5000 * index);
+      });
+    }
+  })
+}
+
 // 1: 价格保护
 function priceProtect(task) {
   if (task.frequency != 'never') {
@@ -928,6 +964,9 @@ function priceProtect(task) {
       setTimeout(() => {
         document.getElementById("mescroll0").scrollTop =0
       }, 6500);
+      setTimeout(() => {
+        modifyRefundType(mode)
+      }, 7500);
     }
     if (document.getElementById("dataList")) {
       mode = "pc"
@@ -941,6 +980,9 @@ function priceProtect(task) {
       setTimeout(() => {
         $(window).scrollTop(0)
       }, 6500);
+      setTimeout(() => {
+        modifyRefundType(mode)
+      }, 7500);
     }
 
     if ($(".bd-product-list li").length > 0 || $(".co-th").length > 0) {
@@ -1229,9 +1271,9 @@ function autoLogin(account, type) {
       if (type == 'pc') {
         simulateClick($(".login-btn a"), true)
       } else {
-        simulateClick($("#loginBtn"), true)
+        simulateClick($(".page a.btn.J_ping"), true)
       }
-    }, 1000);
+    }, 1200);
   }
 
   if (type == 'pc') {
@@ -1299,17 +1341,19 @@ function autoLogin(account, type) {
   // 手机登录
   } else {
     $("#username").val(account.username)
-    $("#password").val(account.password)
-    $("#loginBtn").addClass("btn-active")
+    $("#pwd").val(account.password)
+    $("#username")[0].dispatchEvent(new Event('input', { bubbles: true }))
+    $("#pwd")[0].dispatchEvent(new Event('input', { bubbles: true }))
+    $(".page a.btn.J_ping").addClass("btn-active")
     // 自动登录
     function mLogin() {
       setTimeout(function () {
-        if ($("#username").val() && $("#password").val()) {
+        if ($("#username").val() && $("#pwd").val()) {
           login('m')
           // 是否需要滑动验证
           observeDOM(document.body, function (observer) {
-            let slideMsg = $("#captcha_body .sp_msg").text()
-            if (slideMsg && slideMsg.length > 0) {
+            let captchaMsg = $("#captcha_dom .captcha_header").text()
+            if (captchaMsg && captchaMsg.length > 0) {
               if (observer) observer.disconnect();
               dealLoginFailed("m", "需要完成登录验证")
             }
@@ -1321,6 +1365,8 @@ function autoLogin(account, type) {
               dealLoginFailed("m", errorMsg)
             }
           }, 2000)
+        } else {
+          console.log("missing username or password", $("#username").val(), $("#password").val())
         }
       }, 500)
     }
@@ -1401,16 +1447,14 @@ function resaveAccount() {
 // 登录页
 function dealLoginPage() {
   // 手机版登录页
-  if ( $(".loginPage").length > 0 && $("#username").length > 0) {
+  if ( $(".quick-btn").length > 0 && $("#username").length > 0) {
     getAccount('m')
-    $(auto_login_html).insertAfter( ".loginPage .notice")
-    // 隐藏“一键登录”
-    $("#loginOneStep").hide()
+    $(auto_login_html).insertAfter( ".page .notice")
     // 点击让京价保自动登录
-    $('.loginPage').on('click', '.jjb-login', function (e) {
+    $('.page').on('click', '.jjb-login', function (e) {
       window.event ? window.event.returnValue = false : e.preventDefault();
-      var username = $("#username").val()
-      var password = $("#password").val()
+      let username = $("#username").val()
+      let password = $("#pwd").val()
       // 保存账号和密码
       if (username && password) {
         saveAccount({
@@ -1418,7 +1462,7 @@ function dealLoginPage() {
           password: password
         })
       }
-      simulateClick($("#loginBtn"), true)
+      simulateClick($(".page a.btn.J_ping"), true)
     })
   };
   // PC版登录页
@@ -1669,6 +1713,92 @@ function getGoldCoin(task) {
   }
 }
 
+function pineappleCheckIn(task) {
+  if (task && task.frequency != 'never') {
+    let time = 0;
+    runStatus(task)
+    $(".get_btn_title").each(function () {
+      let that = $(this)
+      if (that.text() == '领钢镚') {
+        setTimeout(function () {
+          simulateClick($(that))
+          let uuid = Date.now()
+          observeDOM(document.body, function (observer) {
+            let resultElement = $(".reward_title")
+            if (resultElement && resultElement.text().indexOf('领取成功') > -1) {
+              if (observer) observer.disconnect();
+              let value = $(".reward_hasnum>span").text()
+              if (value !== '') {
+                return markCheckinStatus('pineapple', `${value}个钢蹦`, () => {
+                  chrome.runtime.sendMessage({
+                    task: task,
+                    log: true,
+                    action: "checkin_notice",
+                    title: "京价保自动为您领取钢镚",
+                    value: value,
+                    reward: "coin",
+                    content: `恭喜您领到了${value}个钢蹦`,
+                    uuid: uuid
+                  }, function (response) {
+                    console.log("Response: ", response);
+                  });
+                })
+              }
+            }
+            let errorMsg = $(".error_content")
+            if (errorMsg && errorMsg.text().indexOf('明天再来') > -1) {
+              markCheckinStatus('pineapple')
+            }
+          })
+        }, time)
+        time += 5000;
+      }
+    })
+  }
+}
+
+function swingCheckIn(task) {
+  if (task && task.frequency != 'never') {
+    let time = 0;
+    runStatus(task)
+    $(".rewardBoxBot").each(function () {
+      let that = $(this)
+      if (that.text() == '摇一摇 有惊喜') {
+        setTimeout(function () {
+          simulateClick($(that))
+          let uuid = Date.now()
+          observeDOM(document.body, function (observer) {
+            let resultElement = $(".rewardPopupT")
+            if (resultElement && resultElement.text().indexOf('小盒子送你') > -1) {
+              if (observer) observer.disconnect();
+              let value = $(".rewardBeanPopContent em").text()
+              if (value !== '') {
+                return markCheckinStatus('swing-reward', `${value}个京豆`, () => {
+                  chrome.runtime.sendMessage({
+                    task: task,
+                    log: true,
+                    action: "checkin_notice",
+                    title: "京价保自动为您摇一摇领京豆",
+                    value: value,
+                    reward: "bean",
+                    content: `恭喜您领到了${value}个京豆`,
+                    uuid: uuid
+                  }, function (response) {
+                    console.log("Response: ", response);
+                  });
+                });
+              } else {
+                markCheckinStatus('swing-reward')
+              }
+            }
+          })
+        }, time)
+        time += 5000;
+      }
+    })
+  }
+}
+
 
 // ************
 // 主体任务
@@ -1704,6 +1834,14 @@ function triggerTask(task) {
     // 22:金币
     case '22':
       getGoldCoin(task)
+      break;
+    // 29: 每日镚一镚
+    case '29':
+      pineappleCheckIn(task)
+      break;
+    // 30: 摇一摇领京豆
+    case '30':
+      swingCheckIn(task)
       break;
     default:
       break;
@@ -1915,10 +2053,10 @@ function checkLoginState() {
     accountAlive('pc', 'PC网页检测到用户名')
   };
   // M 是否登录
-  if (($("#mCommonMy").length > 0 && $("#mCommonMy").attr("report-eventid") == "MCommonBottom_My") || ($("#userName") && $("#userName").length > 0) || ($(".user_info .name").text() && $(".user_info .name").text().length > 0)) {
+  if (($("#mCommonMy").length > 0 && $("#mCommonMy").attr("report-eventid") == "MCommonBottom_My") || ($("#userName") && $("#userName").length > 0) || ($("#myHeader .my_header_name") && $("#myHeader .my_header_name").length > 0) || ($(".user_info .name").text() && $(".user_info .name").text().length > 0)) {
     accountAlive('m', '移动网页检测到登录')
   };
-  if (location.href == "https://home.m.jd.com/myJd/newhome.action" && document.title == "个人中心") {
+  if (location.href == "https://home.m.jd.com/myJd/newhome.action") {
     accountAlive('m', '移动网页打开个人中心')
   }
 }

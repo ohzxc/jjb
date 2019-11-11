@@ -269,6 +269,21 @@
                   </select>
                 </div>
               </div>
+              <div class="weui-cell weui-cell_select weui-cell_select-after">
+                <div class="weui-cell__bd">
+                  <span
+                    data-tippy-placement="top-start"
+                    class="tippy"
+                    data-tippy-content="京东生鲜类价格保护时默认提供“生鲜品类券”，可手动修改为“原返”，设置本选项后京价保将为您自动选择"
+                  >生鲜价保模式</span>
+                </div>
+                <div class="weui-cell__bd">
+                  <select class="weui-select" v-auto-save name="refund_type">
+                    <option value="1">原返</option>
+                    <option value="2">限生鲜品类京券</option>
+                  </select>
+                </div>
+              </div>
               <div class="weui-cell weui-cell_switch">
                 <div class="weui-cell__bd">
                   <span

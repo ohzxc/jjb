@@ -166,7 +166,9 @@ dialog .close {
 
 .jjbPriceChart .title {
     font-size: 14px;
-    padding: 10px;
+    line-height: 24px;
+    height: 28px;
+    padding: 6px 10px;
     background-color: #f7f7f7;
     border-bottom: 1px solid #eee;
 }
@@ -260,4 +262,61 @@ dialog .close {
 .reportUtmSource .weui-dialog{
     max-width: 500px;
     background: #f8f8f8;
+}
+
+#specialPromotion {
+    width: 80%;
+    display: inline-block;
+    height: 22px;
+    line-height: 24px;
+}
+
+.special-promotion-item{
+    padding: 3px 10px;
+    vertical-align: middle;
+}
+
+.special-promotion-item a{
+    font-size: 14px;
+    vertical-align: middle;
+}
+
+.special-promotion-item .icon{
+    padding-right: 10px;
+    float: left;
+}
+
+
+#specialPromotion .promotions{
+    float: left;
+    width: 80%;
+}
+
+#specialPromotion .controller{
+    width: 20%;
+    float: right;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+    padding: 8px 0px;
+}
+
+#specialPromotion .controller .item__child {
+    cursor: pointer;
+    min-width: 12px;
+    min-width: 1.2rem;
+    min-height: 4px;
+    min-height: 0.4rem;
+    display: block;
+    margin: 0 3px;
+    border: 1px solid #ddd;
+    background-color: #dddddd;
+}
+
+#specialPromotion .controller .item__child.on {
+    background-color:  #7abd53;
+}
+
+#specialPromotion .controller .item__child:hover {
+    background-color: #096
 }

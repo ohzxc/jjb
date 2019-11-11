@@ -13,8 +13,6 @@ $(document).ready(function () {
           <option value="60">最近60天</option>
           <option value="90">最近90天</option>
         </select>
-        <div id="specialPromotion">
-        </div>
         <span id="disablePriceChart">&times;</span>
       </h4>
       <div id="jjbPriceChart">
@@ -67,7 +65,7 @@ $(document).ready(function () {
       success: function (data) {
         if (data.chart.length > 2) {
           $("#jjbPriceChart").html('')
-          let specialPromotion = data.specialPromotion
+          // let specialPromotion = data.specialPromotion
           let chart = new G2.Chart({
             container: 'jjbPriceChart',
             forceFit: true,
@@ -109,31 +107,31 @@ $(document).ready(function () {
             }
           );
 
-          let specialPromotionDom = ``
-          specialPromotion && specialPromotion.forEach(item => {
-            specialPromotionDom += `<div class="special-promotion-item"><a class="promotion-item" style="${item.style}" href="${item.url}" target="_break">${item.icon ? `<span class="icon"><img src="${item.icon}"/></span>` : ''}${item.title}</a></div>`
-          });
-          let specialPromotionControllerDom = ``
-          specialPromotion &&specialPromotion.forEach((item, index) => {
-            specialPromotionControllerDom += `<span class="item__child" data-index="${index}"></span>`
-          });
-          $("#specialPromotion").html(`
-            <div class="promotions">${specialPromotionDom}</div>
-            <div class="controller">${specialPromotionControllerDom}</div>
-          `)
+          // let specialPromotionDom = ``
+          // specialPromotion && specialPromotion.forEach(item => {
+          //   specialPromotionDom += `<div class="special-promotion-item"><a class="promotion-item" style="${item.style}" href="${item.url}" target="_break">${item.icon ? `<span class="icon"><img src="${item.icon}"/></span>` : ''}${item.title}</a></div>`
+          // });
+          // let specialPromotionControllerDom = ``
+          // specialPromotion &&specialPromotion.forEach((item, index) => {
+          //   specialPromotionControllerDom += `<span class="item__child" data-index="${index}"></span>`
+          // });
+          // $("#specialPromotion").html(`
+          //   <div class="promotions">${specialPromotionDom}</div>
+          //   <div class="controller">${specialPromotionControllerDom}</div>
+          // `)
           chart.render();
-          setTimeout(() => {
-            showPromotions(Math.floor(Math.random()*specialPromotion.length) + 1);
-            $( "#specialPromotion .controller .item__child" ).live( "click", function() {
-              let index = $(this).data('index');
-              console.log('index', index)
-              showPromotions(index+1)
-            });
-          }, 50);
+          // setTimeout(() => {
+          //   showPromotions(Math.floor(Math.random()*specialPromotion.length) + 1);
+          //   $( "#specialPromotion .controller .item__child" ).live( "click", function() {
+          //     let index = $(this).data('index');
+          //     console.log('index', index)
+          //     showPromotions(index+1)
+          //   });
+          // }, 50);
 
-          setInterval(() => {
-            showPromotions(Math.floor(Math.random()*specialPromotion.length) + 1);
-          }, 30000);
+          // setInterval(() => {
+          //   showPromotions(Math.floor(Math.random()*specialPromotion.length) + 1);
+          // }, 30000);
         } else {
           $("#jjbPriceChart").html(`<div class="no_data">暂无数据</div>`)
         }

@@ -97,12 +97,12 @@ function showJEvent(rateLimit) {
     localStorage.setItem('showRecommendState', JSON.stringify(showRecommendState))
   }
   // 加载反馈
-  if (!$("#jEventIframe").attr('src') || $("#jEventIframe").attr('src') == '') {
-    $("#jEventIframe").attr('src', "https://jjb.zaoshu.so/recommend")
-    setTimeout(function () {
-      $('.iframe-loading').hide()
-    }, 800)
-  }
+  // if (!$("#jEventIframe").attr('src') || $("#jEventIframe").attr('src') == '') {
+  //   $("#jEventIframe").attr('src', "https://jjb.zaoshu.so/recommend")
+  //   setTimeout(function () {
+  //     $('.iframe-loading').hide()
+  //   }, 800)
+  // }
   $("#jEventDialags").show()
 }
 
@@ -119,47 +119,47 @@ $( document ).ready(function() {
   changeTips()
 
   // 查询最新版本
-  $.getJSON("https://jjb.zaoshu.so/updates?buildid={{buildid}}&browser={{browser}}", function (lastVersion) {
-    if (!lastVersion) return localStorage.removeItem('newVersion')
-    let skipBuildId = localStorage.getItem('skipBuildId')
-    let localBuildId = skipBuildId || "{{buildid}}"
-    // 如果有新版
-    if (localBuildId < lastVersion.buildId && lastVersion.notice) {
-      localStorage.setItem('newVersion', lastVersion.versionCode)
-      // 如果新版是主要版本，而且当前版本需要被提示
-      if (lastVersion.major && localBuildId < lastVersion.noticeBuildId) {
-        let noticeDialog = weui.dialog({
-          title: `${lastVersion.title} <span class="dismiss">&times;</span>` || '京价保有版本更新',
-          content: `${lastVersion.changelog}
-            <div class="changelog">
-              <span class="time">${lastVersion.time}</span>` +
-             (lastVersion.blogUrl ? `<a class="blog" href="${lastVersion.blogUrl}" target="_blank">了解更多</a>` : '') +
-            `</div>`,
-          className: 'update',
-          buttons: [{
-            label: '不再提醒',
-            type: 'default',
-            onClick: function () {
-              localStorage.setItem('skipBuildId', lastVersion.buildId)
-            }
-          }, {
-            label: '下载更新',
-            type: 'primary',
-            onClick: function () {
-              chrome.tabs.create({
-                url: lastVersion.downloadUrl || "https://jjb.zaoshu.so/updates/latest?browser={{browser}}"
-              })
-            }
-          }]
-        });
-        $(".update .dismiss").on("click", function () {
-          noticeDialog.hide()
-        })
-      }
-    } else {
-      localStorage.removeItem('newVersion')
-    }
-  });
+  // $.getJSON("https://jjb.zaoshu.so/updates?buildid={{buildid}}&browser={{browser}}", function (lastVersion) {
+  //   if (!lastVersion) return localStorage.removeItem('newVersion')
+  //   let skipBuildId = localStorage.getItem('skipBuildId')
+  //   let localBuildId = skipBuildId || "{{buildid}}"
+  //   // 如果有新版
+  //   if (localBuildId < lastVersion.buildId && lastVersion.notice) {
+  //     localStorage.setItem('newVersion', lastVersion.versionCode)
+  //     // 如果新版是主要版本，而且当前版本需要被提示
+  //     if (lastVersion.major && localBuildId < lastVersion.noticeBuildId) {
+  //       let noticeDialog = weui.dialog({
+  //         title: `${lastVersion.title} <span class="dismiss">&times;</span>` || '京价保有版本更新',
+  //         content: `${lastVersion.changelog}
+  //           <div class="changelog">
+  //             <span class="time">${lastVersion.time}</span>` +
+  //            (lastVersion.blogUrl ? `<a class="blog" href="${lastVersion.blogUrl}" target="_blank">了解更多</a>` : '') +
+  //           `</div>`,
+  //         className: 'update',
+  //         buttons: [{
+  //           label: '不再提醒',
+  //           type: 'default',
+  //           onClick: function () {
+  //             localStorage.setItem('skipBuildId', lastVersion.buildId)
+  //           }
+  //         }, {
+  //           label: '下载更新',
+  //           type: 'primary',
+  //           onClick: function () {
+  //             chrome.tabs.create({
+  //               url: lastVersion.downloadUrl || "https://jjb.zaoshu.so/updates/latest?browser={{browser}}"
+  //             })
+  //           }
+  //         }]
+  //       });
+  //       $(".update .dismiss").on("click", function () {
+  //         noticeDialog.hide()
+  //       })
+  //     }
+  //   } else {
+  //     localStorage.removeItem('newVersion')
+  //   }
+  // });
 
   // 是否已存在弹窗
   function isNoDialog(){

@@ -1022,9 +1022,9 @@ function showUtmSource() {
       <span id="reportUtmSource" class="report">举报</span>
     </div>
   </div>`
-  if (utm_source && utm_source.indexOf('zaoshu.so') < 0) {
-    $("body").prepend(utmSourceDom);
-  }
+  // if (utm_source && utm_source.indexOf('zaoshu.so') < 0) {
+  //   $("body").prepend(utmSourceDom);
+  // }
   $("#reportUtmSource").on("click", function () {
     weui.dialog({
       title: '举报劫持',

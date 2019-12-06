@@ -873,7 +873,7 @@ button.Button.messages-tab.Button--plain:focus {
     margin-bottom: -3px;
 }
 
-.message .checkin_notice, .message .goldCoinReceived {
+.message .checkin_notice, .message .goldCoinReceived, .beanReceived {
     background: url(../image/bean.png) no-repeat;
     width: 20px;
     height: 20px;

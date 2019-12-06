@@ -71,6 +71,16 @@ async function updateMessages() {
   });
 }
 
+async function getTodayMessagesByTaskId(taskId) {
+  let now = new Date();
+  let startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()) / 1
+  let messages = await db.messages.where('timestamp').above(startOfDay).reverse().sortBy('timestamp')
+  let todayMessages = messages.filter((message) => {
+    return message.taskId == taskId
+  })
+  saveSetting(`temporary:task-messages:${taskId}:${startOfDay}`, todayMessages)
+}
+
 async function addTaskLog(task) {
   const timestamp = Date.now()
   await db.taskLogs.add({
@@ -132,6 +142,14 @@ function getTaskUsageImmediately(taskId) {
   return usage
 }
 
+function getTodayMessagesByTaskIdImmediately(taskId) {
+  let now = new Date();
+  let startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()) / 1
+  const messages = getSetting(`temporary:task-messages:${taskId}:${startOfDay}`, [])
+  getTodayMessagesByTaskId(taskId)
+  return messages
+}
+
 module.exports = {
   findGood,
   findOrder,
@@ -141,5 +159,6 @@ module.exports = {
   addTaskLog,
   getTaskLog,
   findAndUpdateTaskResult,
-  getTaskUsageImmediately
+  getTaskUsageImmediately,
+  getTodayMessagesByTaskIdImmediately
 };

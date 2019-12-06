@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
 import { getLoginState } from './account'
 import { getSetting, readableTime } from './utils'
-import { getTaskUsageImmediately } from './db'
+import { getTaskUsageImmediately, getTodayMessagesByTaskIdImmediately } from './db'
 
 const priceProUrl = "https://msitepp-fm.jd.com/rest/priceprophone/priceProPhoneMenu"
 const frequencyOptionText = {
@@ -16,6 +16,14 @@ const mapFrequency = {
   'daily': 24 * 60,
   'never': 99999
 }
+
+const mapReward = {
+  'goldCoin': "金币",
+  'bean': "京豆",
+  'coin': "钢镚"
+}
+
+
 const tasks = [
   {
     id: '1',
@@ -154,6 +162,28 @@ const tasks = [
     },
   },
   {
+    id: '23',
+    src: {
+      m: 'https://m.jr.jd.com/vip/activity/newperback/index.html',
+    },
+    title: '单单返京豆',
+    description: "京东支付购物单单返京豆",
+    mode: 'iframe',
+    type: ['m'],
+    frequencyOption: ['daily', 'never'],
+    frequency: 'daily',
+    location: {
+      host: ['m.jr.jd.com'],
+      pathname: ['/vip/activity/newperback/index.html']
+    },
+    new: true,
+    rateLimit:{
+      weekly: 14,
+      daily: 3,
+      hour: 2
+    }
+  },
+  {
     id: '5',
     src: {
       m: 'https://vip.m.jd.com/page/signin',
@@ -215,9 +245,9 @@ const tasks = [
     deprecated: true
   },
   {
-    id: '9',
+    id: '9', // 已经失效
     src: {
-      m: 'https://uf.jr.jd.com/activities/sign/v4/html/index.html',
+      m: 'https://uf.jr.jd.com/activities/sign/v5/index.html',
     },
     title: '金融会员签到',
     description: "京东金融会员签到，需要实名认证",
@@ -227,11 +257,16 @@ const tasks = [
     type: ['m'],
     frequencyOption: ['daily', 'never'],
     frequency: 'daily',
+    location: {
+      host: ['uf.jr.jd.com'],
+      pathname: ['/activities/sign/v5/index.html']
+    },
     rateLimit:{
       weekly: 32,
       daily: 4,
       hour: 2
-    }
+    },
+    deprecated: true
   },
   {
     id: '11',
@@ -313,7 +348,7 @@ const tasks = [
     }
   },
   {
-    id: '7',
+    id: '7', // 已移除
     src: {
       pc: 'https://bean.jd.com/myJingBean/list',
     },
@@ -327,7 +362,8 @@ const tasks = [
       weekly: 32,
       daily: 4,
       hour: 2
-    }
+    },
+    deprecated: true
   },
   {
     id: '30',
@@ -423,6 +459,16 @@ let getTask = function (taskId, currentPlatform) {
     if (onetimeRecord) {
       taskStatus.checked = true
       taskStatus.checkin_description = `完成于：${readableTime(DateTime.fromISO(onetimeRecord.time))} ${onetimeRecord.message}`
+    }
+  }
+
+  // 如果是每日任务，则读取当日运行结果
+  if (!task.checkin && !task.onetimeKey && task.frequency == 'daily') {
+    task.messages = getTodayMessagesByTaskIdImmediately(task.id)
+    if (task.messages.length > 0) {
+      let lastDone = task.messages[0]
+      taskStatus.checked = true
+      taskStatus.checkin_description = "最近一次完成于：" + readableTime(DateTime.fromMillis(lastDone.timestamp)) + (lastDone.value ? "，领到：" + lastDone.value : "") + (lastDone.reward ? mapReward[lastDone.reward] : "" );
     }
   }
 

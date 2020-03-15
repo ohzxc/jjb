@@ -409,9 +409,10 @@ $( document ).ready(function() {
   // 设置默认值
   setDefaultSetting()
 
-  // 移除临时缓存项
-  removeExpiredLocalStorageItems()
-
+  // 移除临时缓存项（只在20点～8点运行）
+  if (new Date().getHours() > 20 || new Date().getHours() < 8) {
+    removeExpiredLocalStorageItems()
+  }
 })
 
 // 用手机模式打开
@@ -904,7 +905,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
       localStorage.setItem(`temporary_job${task.id}_frequency`, 'onetime');
       // 任务因为频率受限无法运行
       if (task.pause) {
-        let taskPauseMsg = `${task.title}已达到最大时段频率，每小时：${task.rateLimit.hour}，请勿重复运行`
+        let taskPauseMsg = `${task.title}已达到当前时段最大时段频率，每小时：${task.rateLimit.hour} 次，请勿重复运行等待自动运行`
         sendChromeNotification(new Date().getTime().toString(), {
           type: "basic",
           title: "任务因为频率受限无法运行",
@@ -1130,6 +1131,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     case 'priceProtectionNotice':
     case 'couponReceived':
     case 'goldCoinReceived':
+    case 'beanReceived':
     case 'checkin_notice':
       if (msg.test) {
         break;

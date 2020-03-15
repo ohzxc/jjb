@@ -1135,6 +1135,7 @@ function handProtection(setting, priceInfo) {
 // 模拟点击
 function simulateClick(dom, mouseEvent) {
   let domNode = dom.get(0)
+  console.log('simulateClick', dom, mouseEvent)
   if (mouseEvent && domNode) {
     return mockClick(domNode)
   }
@@ -1639,12 +1640,12 @@ function beanCheckin(task) {
 
 
 // 9: 金融会员签到
-function jrIndex(task) {
+function jrIndexCheckin(task) {
   if (task.frequency != 'never') {
     weui.toast('京价保运行中', 1000);
     runStatus(task)
-    if ($("#sign2main .sign-btn").length > 0 && $("#sign2main .sign-btn").text().indexOf('签到') > -1) {
-      simulateClick($("#sign2main .sign-btn"), true)
+    if ($(".top-mian .sign-btn").length > 0 && $(".top-mian .sign-btn").text().indexOf('签到') > -1) {
+      simulateClick($(".top-mian .sign-btn"), true)
       // 监控结果
       observeDOM(document.body, function (observer) {
         let resultElement = $('.signDialog h1:visible')
@@ -1668,7 +1669,7 @@ function jrIndex(task) {
         }
       })
     } else {
-      if ($("#sign2main .sign-btn").text().indexOf('再签') == 0) {
+      if ($(".top-mian .sign-btn").text().indexOf('再签') == 0) {
         markCheckinStatus('jr-index')
       }
     }
@@ -1700,6 +1701,49 @@ function getGoldCoin(task) {
                 value: value,
                 reward: "goldCoin",
                 content: `恭喜您领到了${value}个金币`,
+                uuid: uuid
+              }, function (response) {
+                console.log("Response: ", response);
+              });
+            }
+          })
+        }, time)
+        time += 5000;
+      }
+    })
+  }
+}
+
+// 23: 京东支付单单返
+function getJDPayBean(task) {
+  if (task && task.frequency != 'never') {
+    let time = 0;
+    weui.toast('京价保运行中', 1000);
+    runStatus(task)
+
+    const paybackBeansNumber = $("#index .per-payback-beens .beens-part .number").text().replace(/[^0-9\.-]+/g, "")
+    if (Number(paybackBeansNumber) < 1) {
+      return console.log('no beans')
+    }
+    $("#index .per-payback-beens .btn").each(function () {
+      let that = $(this)
+      if (that.text().indexOf("立即领取") > -1) {
+        setTimeout(function () {
+          simulateClick($(that))
+          let uuid = Date.now()
+          observeDOM(document.body, function (observer) {
+            let resultElement = $(".jrm-dialog-box .title")
+            if (resultElement && resultElement.text().indexOf('获得') > -1) {
+              if (observer) observer.disconnect();
+              let value = $(".jrm-dialog-box .num").text().replace(/[^0-9\.-]+/g, "")
+              return chrome.runtime.sendMessage({
+                task: task,
+                log: true,
+                action: "beanReceived",
+                title: "京价保自动为您领取单单返京豆",
+                value: value,
+                reward: "bean",
+                content: `恭喜您领到了${value}个京豆`,
                 uuid: uuid
               }, function (response) {
                 console.log("Response: ", response);
@@ -1835,6 +1879,10 @@ function triggerTask(task) {
     case '22':
       getGoldCoin(task)
       break;
+    // 23: 京东支付单单返
+    case '23':
+      getJDPayBean(task)
+      break;
     // 29: 每日镚一镚
     case '29':
       pineappleCheckIn(task)
@@ -1842,6 +1890,10 @@ function triggerTask(task) {
     // 30: 摇一摇领京豆
     case '30':
       swingCheckIn(task)
+      break;
+    // 9: 金融会员签到
+    case '9':
+      jrIndexCheckin(task)
       break;
     default:
       break;
@@ -1974,11 +2026,6 @@ function CheckDom() {
     setTimeout(() => {
       getTask('14', getCoin);
     }, 1000);
-  };
-
-  // 京东金融首页签到（9： 金融会员签到）
-  if ($("#sign2main .sign-btn").length > 0) {
-    getTask('9', jrIndex);
   };
 
   // 单独的领券页面

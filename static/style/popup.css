@@ -1093,18 +1093,18 @@ button.Button.messages-tab.Button--plain:focus {
 }
 
 
-.bottom-box .links {
+.bottom-box .action-list {
     right: 10px;
     position: absolute;
     bottom: 10px;
 }
 
-.links .text-tips{
+.action-list .text-tips{
     color: #bbb;
     padding-bottom: 5px;
 }
 
-.links .el-tag{
+.action-list .el-tag{
     padding: 0 8px;
 }
 

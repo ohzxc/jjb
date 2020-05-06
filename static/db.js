@@ -37,9 +37,7 @@ async function findOrder(orderId, data) {
 }
 
 async function updateOrders() {
-  let proDays = getSetting('price_pro_days', 15)
-  let proTime = Date.now() - 60*60*1000*24*proDays;
-  let orders = await db.orders.where('timestamp').above(proTime).reverse().sortBy('timestamp')
+  let orders = await db.orders.where('timestamp').above(Date.now() - 60*60*1000*24*45).reverse().sortBy('timestamp')
 
   if (orders && orders.length > 0) {
     orders = orders.filter(order => order.goods && order.goods.length > 0);
@@ -83,21 +81,22 @@ async function getTodayMessagesByTaskId(taskId) {
 
 async function addTaskLog(task) {
   const timestamp = Date.now()
-  await db.taskLogs.add({
+  const log = await db.taskLogs.add({
     id: timestamp,
     taskId: task.id,
     timestamp: timestamp,
     mode: task.mode,
     results: []
   });
+  console.log('addTaskLog', log, timestamp)
 }
 
 async function findAndUpdateTaskResult(taskId, result) {
-  let lastTwoMinute = Date.now() - 60*60*5;
-  const lastRunLog = (await db.taskLogs.where('timestamp').above(lastTwoMinute).reverse().sortBy('timestamp')).find((log) => {
+  let last5Minute = Date.now() - 60*5*1000;
+  const lastRunLog = (await db.taskLogs.where('timestamp').above(last5Minute).reverse().sortBy('timestamp')).find((log) => {
     return log.taskId == taskId
   })
-  console.log('lastRunLog', lastRunLog)
+  console.log('lastRunLog', taskId, lastRunLog, result)
   if (lastRunLog) {
     await db.taskLogs.where('id').equals(lastRunLog.id).modify(log => {
       log.results.push(result);

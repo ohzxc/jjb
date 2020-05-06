@@ -150,7 +150,7 @@
                   target="_block"
                   v-tippy
                   title="点击了解京东价格保护政策"
-                >只显示在价保监控范围内且下单金额大于0的订单（默认15天内）</a>
+                >只显示在价保有效期内且下单金额大于0的订单</a>
               </p>
             </ul>
             <div class="no_order" v-else>
@@ -159,7 +159,7 @@
               </div>
               <div v-else>
                 <h4>暂时还没有监控到订单</h4>
-                <p class="tips">只显示选定范围的订单(默认为最近7天)</p>
+                <p class="tips">只显示尚在价保有效期的订单</p>
               </div>
             </div>
           </div>

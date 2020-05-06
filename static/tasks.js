@@ -32,7 +32,7 @@ const tasks = [
       pc: "https://pcsitepp-fm.jd.com/rest/pricepro/priceapply"
     },
     title: '价格保护',
-    description: "价格保护默认只申请15天内下单的商品",
+    description: "价格保护只显示京东系统尚在价保有效期内的商品",
     mode: 'iframe',
     type: ['pc', 'm'],
     frequencyOption: ['2h', '5h', 'daily', 'never'],
@@ -392,7 +392,7 @@ const tasks = [
   {
     id: '22',
     src: {
-      m: 'https://m.jr.jd.com/member/gcmall/',
+      m: 'https://member.jr.jd.com/gcmall/',
     },
     title: '领取金融金币',
     description: "领取京东金融各种返金币",
@@ -401,8 +401,8 @@ const tasks = [
     frequencyOption: ['daily', 'never'],
     frequency: 'daily',
     location: {
-      host: ['m.jr.jd.com'],
-      pathname: ['/member/gcmall/']
+      host: ['member.jr.jd.com'],
+      pathname: ['/gcmall/']
     },
     new: true,
     rateLimit:{
@@ -416,14 +416,8 @@ const tasks = [
 // 根据登录状态选择任务模式
 let findTaskPlatform = function (task) {
   let loginState = getLoginState()
-  let platform = null
-  for (var i = 0; i < task.type.length; i++) {
-    if (loginState[task.type[i]].state == 'alive') {
-      platform = task.type[i];
-      break;
-    }
-  }
-  return platform
+
+  return task.type.find((platform) => loginState[platform].state == 'alive')
 }
 
 let getTask = function (taskId, currentPlatform) {
@@ -499,7 +493,6 @@ let getTask = function (taskId, currentPlatform) {
   if ((task.rateLimit.weekly && taskStatus.usage.weekly >= task.rateLimit.weekly) || taskStatus.usage.daily >= task.rateLimit.daily || taskStatus.usage.hour >= task.rateLimit.hour) {
     taskStatus.pause = true;
     taskStatus.pause_description = `超出频率限制`
-
   }
   // 如果是新任务
   if (task.new) {

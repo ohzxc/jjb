@@ -121,7 +121,7 @@
                 </div>
               </div>
             </div>
-            <div class="tips bottom-tips">
+            <!-- <div class="tips bottom-tips">
               <p class="page__desc">
                 <a id="notice">京东页面经常更新，唯有你的支持才能让京价保保持更新。</a>
                 <span
@@ -129,7 +129,7 @@
                   @click="switchPaymethod('wechat', 'ming')"
                 >打赏</span>
               </p>
-            </div>
+            </div> -->
           </div>
           <div class="notice_settings settings_box" style="display: none">
             <div class="weui-cells weui-cells_form">
@@ -236,22 +236,6 @@
           </div>
           <div class="other_settings settings_box" style="display: none">
             <div class="weui-cells weui-cells_form">
-              <div class="weui-cell weui-cell_select weui-cell_select-after">
-                <div class="weui-cell__bd">
-                  <span
-                    data-tippy-placement="top-start"
-                    class="tippy"
-                    data-tippy-content="京东价格保护的时间不同商品不同，大部分商品是7天价保"
-                  >监控订单范围</span>
-                </div>
-                <div class="weui-cell__bd">
-                  <select class="weui-select" v-auto-save name="price_pro_days">
-                    <option value="7">最近7天</option>
-                    <option value="15">最近15天</option>
-                    <option value="30">最近30天</option>
-                  </select>
-                </div>
-              </div>
               <div class="weui-cell weui-cell_select weui-cell_select-after">
                 <div class="weui-cell__bd">
                   <span
@@ -424,7 +408,7 @@
           :title="loginState.description"
         ></a>
       </div>
-      <div class="links">
+      <div class="action-list">
         <span class="el-tag el-tag--success">
           <a
             href="#"
@@ -443,26 +427,55 @@
             v-tippy
           >支付宝红包</a>
         </span>
-        <span class="el-tag el-tag--warning">
-          <a
-            href="#"
-            id="openjEventCard"
-            data-tippy-placement="top-start"
-            class="tippy"
-            data-tippy-content="热门的促销活动推荐"
-          >活动推荐</a>
-        </span>
-        <span class="el-tag">
-          <a
-            data-tippy-placement="top-start"
-            class="tippy"
-            data-tippy-content="PLUS会员每个月可以领取总额100元的全品类券，但是领取后24小时就会失效，因此推荐每次购物前领取"
-            href="https://plus.jd.com/coupon/index"
-            target="_blank"
-          >领PLUS券</a>
-        </span>
+        <links></links>
       </div>
     </div> -->
+    <support v-if="showSupport" @close="showSupport = false" :initialPaymethod="paymethod" :initialTarget="target"></support>
+    <!-- 试听音效 -->
+    <div id="listenAudio" v-if="listenAudio">
+      <div class="js_dialog" style="opacity: 1;">
+        <div class="weui-mask"></div>
+        <div class="weui-dialog">
+          <div class="weui-dialog__hd">
+            <strong class="weui-dialog__title">
+              试听语言提示
+            </strong>
+          </div>
+          <div class="weui-dialog__bd">
+            <div class="weui-cells">
+              <div class="weui-cell weui-cell_access">
+                <div class="weui-cell__bd message listenVoice" @click="listenVoice('priceProtectionNotice', 'jiabao')">
+                  <span>
+                    <i class="notice jiabao"></i>发现价格保护机会
+                  </span>
+                </div>
+                <div class="weui-cell__ft"></div>
+              </div>
+              <div class="weui-cell weui-cell_access">
+                <div class="weui-cell__bd message listenVoice" @click="listenVoice('checkin_notice', 'bean')">
+                  <span><i class="checkin_notice bean"></i>签到成功，京豆入账</span>
+                </div>
+                <div class="weui-cell__ft"></div>
+              </div>
+              <div class="weui-cell weui-cell_access">
+                <div class="weui-cell__bd message listenVoice" @click="listenVoice('checkin_notice', 'coin')">
+                  <span><i class="checkin_notice coin"></i>金融签到，钢镚掉落</span>
+                </div>
+                <div class="weui-cell__ft"></div>
+              </div>
+            </div>
+          </div>
+          <!-- <div class="weui-dialog__ft">
+            <a class="weui-dialog__btn weui-dialog__btn_primary switch-paymethod" @click="() => {
+                listenAudio = false;
+                switchPaymethod('wechat', 'samedi')
+              }">
+              <i class="weui-icon-success"></i> 打赏声优</a>
+            <a class="weui-dialog__btn weui-dialog__btn_default" @click="listenAudio = false">下次吧</a>
+          </div> -->
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -472,12 +485,13 @@ import { recommendServices } from "../static/variables";
 import { getSetting, saveSetting } from "../static/utils";
 import taskSetting from "./task-setting.vue";
 import support from './support.vue';
+import links from './links.vue';
 
 import weui from "weui.js";
 export default {
   name: "settings",
   props: ["loginState"],
-  components: { taskSetting, support },
+  components: { taskSetting, support, links },
   data() {
     return {
       frequencyOptionText: frequencyOptionText,
@@ -543,6 +557,18 @@ export default {
       } catch (error) {
         this.scienceOnline = false;
       }
+    },
+    // 试听通知
+    listenVoice: function (type, batch) {
+      chrome.runtime.sendMessage({
+        action: type,
+        batch: batch,
+        test: true,
+        title: "京价保通知试听",
+        content: "并没有钱，这只是假象，你不要太当真"
+      }, function (response) {
+        console.log("Response: ", response);
+      });
     },
     showLogin: function() {
       this.$emit("show-login");

@@ -4,6 +4,16 @@ module.exports = {
   rand: function (n){
     return (Math.floor(Math.random() * n + 1));
   },
+  macId: function() {
+    let macId = null;
+    let storedMacId = localStorage.getItem('machine-id');
+    if(!storedMacId) {
+      storedMacId = Math.random().toString(36).slice(2);
+      localStorage.setItem('machine-id', storedMacId);
+    }
+    macId = storedMacId;
+    return macId
+  },
   price: function(price) {
     return Number(Number(price).toFixed(2))
   },

@@ -452,59 +452,61 @@ async function dealProduct(product, orderInfo, setting) {
   applyBtn.attr('product_name', product_name)
 }
 
-async function dealOrder(order, setting) {
-  console.log('dealOrder', order)
+async function dealOrder(order, validProducts, setting) {
+  console.log('dealOrder', order, validProducts)
 
   let order_time = order.find('span.time').text() ? new Date(order.find('span.time').text()) : new Date(order.find('.title span').last().text().trim().split('：')[1])
   let order_id = order.find('span.order').text() ? order.find('span.order').text().replace(/[^0-9\.-]+/g, "") : order.find('.title .order-code').text().trim().split('：')[1]
 
-  console.log('订单:', order_id, order_time, setting)
-  let proTime = Date.now() - 60*60*1000*24*Number(setting.pro_days);
-  // 如果订单时间在设置的价保监控范围以内
-  if (order_time.getTime() > proTime) {
-    let orderInfo = {
-      id: order_id,
-      timestamp: order_time.getTime(),
-      goods: []
-    }
-    chrome.runtime.sendMessage({
-      action: "findOrder",
-      task: {
-        id: "1"
-      },
-      log: true,
-      title: `发现有效的订单：${order_id} 下单时间：${order_time}`,
-      orderId: order_id,
-      order: orderInfo
-    }, function(response) {
-      console.log("good Response: ", response);
-    });
-    let productList = order.find('.product-item').length > 0 ? order.find('.product-item') : order.filter( ".co-th" )
-    let time = 500
-    productList.each(function () {
-      let productElement = $(this)
-      setTimeout(async () => {
-        try {
-          await dealProduct(productElement, orderInfo, setting)
-        } catch (error) {
-          console.error(error)
-        }
-      }, time);
-      time += 2000;
-    })
+  let orderInfo = {
+    id: order_id,
+    timestamp: order_time.getTime(),
+    goods: []
   }
+  chrome.runtime.sendMessage({
+    action: "findOrder",
+    task: {
+      id: "1"
+    },
+    log: true,
+    title: `发现有效的订单：${order_id} 商品数:${validProducts.length} 下单时间：${order_time}`,
+    orderId: order_id,
+    order: orderInfo
+  }, function(response) {
+    console.log("good Response: ", response);
+  });
+
+  let time = 500
+  validProducts.map(function (productElement) {
+    setTimeout(async () => {
+      try {
+        await dealProduct($(productElement), orderInfo, setting)
+      } catch (error) {
+        console.error(error)
+      }
+    }, time);
+    time += 2000;
+  })
 }
 
 async function getAllOrders(mode, setting) {
   console.log('京价保开始自动检查订单', mode)
   // 移动价保
   if ($( "#dataList0 li").length > 0) {
+    console.log('发现订单', $( "#dataList0 li").length)
     let time = 0
     $( "#dataList0 li").each(function() {
       let orderElement = $(this)
+
+      const validProducts = orderElement.find('.product-item').toArray().filter((product) => {
+        return !$(product).find('.apply').hasClass('disable-apply')
+      })
+
+      if (validProducts.length < 1) return
+
       setTimeout(async () => {
         try {
-          await dealOrder(orderElement, setting)
+          await dealOrder(orderElement, validProducts, setting)
         } catch (error) {
           console.error(error)
         }
@@ -515,22 +517,30 @@ async function getAllOrders(mode, setting) {
   // PC价保
   if ($( "#dataList .tr-th").length > 0) {
     let time = 0
+    console.log('发现订单', $( "#dataList .tr-th").length)
     $( "#dataList .tr-th").each(function() {
+      let orderDom = $(this).clone()
+      let product = $(this).next()
+      let products = [product]
+      while (product.next().hasClass('co-th')) {
+        product = product.next()
+        products.push(product)
+      }
+      // 排除已经超过价保周期的商品
+      const validProducts = products.filter((p) => {
+        return p.find("#overTime").length < 1
+      })
+
+      if (validProducts.length < 1) return console.log('排除无效订单', orderDom)
+
       setTimeout(async () => {
-        let orderDom = $(this)
-        let product = $(this).next()
-        orderDom = orderDom.add(product)
-        while (product.next().hasClass('co-th')) {
-          orderDom = orderDom.add(product.next())
-          product = product.next()
-        }
         try {
-          await dealOrder(orderDom, setting)
+          await dealOrder(orderDom, validProducts, setting)
         } catch (error) {
           console.error(error)
         }
       }, time);
-      time += 500;
+      time += 1000;
     });
   }
 
@@ -538,6 +548,7 @@ async function getAllOrders(mode, setting) {
 }
 
 // 4：领取白条券
+// TODO: 优化
 function CheckBaitiaoCouponDom(task) {
   if (task.frequency != 'never') {
     console.log('开始领取白条券')
@@ -952,38 +963,30 @@ function priceProtect(task) {
   if (task.frequency != 'never') {
     weui.toast('京价保运行中', 3500);
     let mode = "m"
-    // 加载第二页
+    let maxPageHeight = 4000 * 20
+    let mainContainer = $(window)
     if (document.getElementById("mescroll0")) {
-      document.getElementById("mescroll0").scrollTop = (document.getElementById("mescroll0").scrollHeight * 2);
-      setTimeout(() => {
-        document.getElementById("mescroll0").scrollTop = (document.getElementById("mescroll0").scrollHeight * 2);
-      }, 3000);
-      setTimeout(() => {
-        document.getElementById("mescroll0").scrollTop = (document.getElementById("mescroll0").scrollHeight * 2);
-      }, 6000);
-      setTimeout(() => {
-        document.getElementById("mescroll0").scrollTop =0
-      }, 6500);
-      setTimeout(() => {
-        modifyRefundType(mode)
-      }, 7500);
+      mainContainer = $("#mescroll0")
     }
+
     if (document.getElementById("dataList")) {
       mode = "pc"
-      $(window).scrollTop(document.getElementById("dataList").scrollHeight * 2);
-      setTimeout(() => {
-        $(window).scrollTop(document.getElementById("dataList").scrollHeight * 2);
-      }, 3000);
-      setTimeout(() => {
-        $(window).scrollTop(document.getElementById("dataList").scrollHeight * 2);
-      }, 6000);
-      setTimeout(() => {
-        $(window).scrollTop(0)
-      }, 6500);
-      setTimeout(() => {
-        modifyRefundType(mode)
-      }, 7500);
     }
+
+    // 加载更多
+    mainContainer.scrollTop(maxPageHeight);
+    setTimeout(() => {
+      mainContainer.scrollTop(maxPageHeight);
+    }, 3000);
+    setTimeout(() => {
+      mainContainer.scrollTop(maxPageHeight);
+    }, 6000);
+    setTimeout(() => {
+      mainContainer.scrollTop(0)
+    }, 6500);
+    setTimeout(() => {
+      modifyRefundType(mode)
+    }, 7500);
 
     if ($(".bd-product-list li").length > 0 || $(".co-th").length > 0) {
       console.log('成功获取价格保护商品列表', new Date())
@@ -995,7 +998,7 @@ function priceProtect(task) {
       }, function (response) {
         setTimeout(function () {
           getAllOrders(mode, response)
-        }, 8000)
+        }, 10 * 1000)
         console.log("getPriceProtectionSetting Response: ", response);
       });
     } else {
@@ -1277,6 +1280,7 @@ function autoLogin(account, type) {
     }, 1200);
   }
 
+  // PC 网页登录
   if (type == 'pc') {
     // 自动补全填入
     $("#loginname").val(account.username)
@@ -1296,15 +1300,6 @@ function autoLogin(account, type) {
       $(".tips-inner .cont-wrapper p").text('由于在' + account.loginState.displayTime + '自动登录失败（原因：' + account.loginState.message + '），京价保暂停自动登录').css('color', '#f73535').css('font-size', '14px')
       $(".login-wrap .tips-wrapper").hide()
       $("#content .tips-wrapper").css('background', '#fff97a')
-      chrome.runtime.sendMessage({
-        text: "highlightTab",
-        content: JSON.stringify({
-          url: window.location.href,
-          pinned: "true"
-        })
-      }, function (response) {
-        console.log("Response: ", response);
-      });
     } else {
       // 如果显示需要验证
       if ($("#s-authcode").height() > 0) {
@@ -1318,25 +1313,15 @@ function autoLogin(account, type) {
           let slideMsg = $(".JDJRV-suspend-slide .JDJRV-lable-refresh").text()
           if (slideMsg && slideMsg.length > 0) {
             dealLoginFailed("pc", "需要完成登录验证")
-            chrome.runtime.sendMessage({
-              text: "highlightTab",
-              content: JSON.stringify({
-                title: "需要完成滑动拼图以登录",
-                url: window.location.href,
-                pinned: "true"
-              })
-            }, function (response) {
-              console.log("Response: ", response);
-            });
           }
-        }, 2500)
+        }, 3000)
         // 监控登录失败
         setTimeout(function () {
           let errorMsg = $('.login-box .msg-error').text()
           if (errorMsg && errorMsg.length > 0) {
             dealLoginFailed("pc", errorMsg)
           }
-        }, 3000)
+        }, 4000)
       }
     }
   // 手机登录
@@ -1449,6 +1434,9 @@ function resaveAccount() {
 function dealLoginPage() {
   // 手机版登录页
   if ( $(".quick-btn").length > 0 && $("#username").length > 0) {
+    // 切换登录模式
+    simulateClick($(".planBLogin"), true)
+
     getAccount('m')
     $(auto_login_html).insertAfter( ".page .notice")
     // 点击让京价保自动登录
@@ -1488,6 +1476,7 @@ function dealLoginPage() {
     })
   };
 }
+
 // 签到领京豆（vip）
 function vipCheckin(task) {
   if (task.frequency != 'never') {
@@ -1637,8 +1626,6 @@ function beanCheckin(task) {
   }
 }
 
-
-
 // 9: 金融会员签到
 function jrIndexCheckin(task) {
   if (task.frequency != 'never') {
@@ -1676,13 +1663,13 @@ function jrIndexCheckin(task) {
   }
 }
 
-// 金币
+// 22: 金币
 function getGoldCoin(task) {
   if (task && task.frequency != 'never') {
     let time = 0;
     weui.toast('京价保运行中', 1000);
     runStatus(task)
-    $("#content .set-coin-item a.btn").each(function () {
+    $("#J_index .setCoin a.btn").each(function () {
       let that = $(this)
       if (that.text() == '立即领取') {
         setTimeout(function () {
@@ -2058,15 +2045,6 @@ function CheckDom() {
   // 手机验证码
   if ($('.tip-box').length > 0 && $(".tip-box").text().indexOf("账户存在风险") > -1) {
     dealLoginFailed("pc", "需要手机验证码")
-    chrome.runtime.sendMessage({
-      text: "highlightTab",
-      content: JSON.stringify({
-        url: window.location.href,
-        pinned: "true"
-      })
-    }, function(response) {
-      console.log("Response: ", response);
-    });
   }
 
   // 验证码

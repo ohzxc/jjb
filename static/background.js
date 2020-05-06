@@ -3,18 +3,22 @@ import * as _ from "lodash"
 import Logline from 'logline'
 import {DateTime} from 'luxon'
 import {priceProUrl, mapFrequency, getTask, getTasks} from './tasks'
-import {rand, getSetting, saveSetting} from './utils'
+import {rand, getSetting, saveSetting, macId} from './utils'
 import {getLoginState} from './account'
 
 import {findGood, findOrder, updateOrders, newMessage, updateMessages, addTaskLog, findAndUpdateTaskResult} from './db'
 
 Logline.using(Logline.PROTOCOL.INDEXEDDB)
 
-var logger = {}
-var autoLoginQuota = {}
-var mLoginUrl = "https://home.m.jd.com/myJd/newhome.action"
-var priceProPage = null
-var mobileUAType = getSetting('uaType', 1)
+let logger = {}
+let autoLoginQuota = {}
+let mLoginUrl = "https://home.m.jd.com/myJd/newhome.action"
+let priceProPage = null
+let currentTask = null
+
+$.ajaxSetup({
+  headers: { 'x-machine-id': macId() }
+});
 
 // This is to remove X-Frame-Options header, if present
 chrome.webRequest.onHeadersReceived.addListener(
@@ -35,50 +39,17 @@ chrome.webRequest.onHeadersReceived.addListener(
   ['blocking', 'responseHeaders']
 );
 
-chrome.runtime.onInstalled.addListener(function (object) {
+chrome.runtime.onInstalled.addListener(function () {
   let installed = localStorage.getItem('jjb_installed')
-  let uaType = localStorage.getItem('uaType')
   if (installed) {
-    if (!uaType) {
-      localStorage.setItem('uaType', 1);
-    }
     console.log("已经安装")
   } else {
-    localStorage.setItem('jjb_installed', 'Y');
-    localStorage.setItem('uaType', rand(3));
+    localStorage.setItem('jjb_installed', new Date());
     chrome.tabs.create({url: "/start.html"}, function (tab) {
       console.log("京价保安装成功！");
     });
   }
 });
-
-var popularPhoneUA = [
-  'Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1 jdjr-app ios',
-  'Mozilla/5.0 (iPhone; CPU iPhone OS 9_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/10.2 Mobile/15E148 Safari/604.1 jdjr-app ios',
-  'Mozilla/5.0 (iPhone9,4; U; CPU iPhone OS 10_0_1 like Mac OS X) AppleWebKit/602.1.50 (KHTML, like Gecko) Version/10.0 Mobile/14A403 Safari/602.1 jdjr-app ios',
-  'Mozilla/5.0 (Linux; Android 6.0.1; SM-G920V Build/MMB29K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.98 Mobile Safari/537.36 jdjr-app'
-];
-chrome.webRequest.onBeforeSendHeaders.addListener(
-  function (details) {
-    for (var i = 0; i < details.requestHeaders.length; ++i) {
-      if (details.requestHeaders[i].name === 'User-Agent') {
-        details.requestHeaders[i].value = popularPhoneUA[mobileUAType];
-        break;
-      }
-    }
-    return {
-      requestHeaders: details.requestHeaders
-    };
-  }, {
-    urls: [
-      "*://*.m.jd.com/*",
-      "*://m.jr.jd.com/*",
-      "*://wq.jd.com/*",
-      "*://wqs.jd.com/*",
-      "*://msitepp-fm.jd.com/*"
-    ]
-  }, ['blocking', 'requestHeaders']);
-
 
 // 判断浏览器
 try {
@@ -87,17 +58,6 @@ try {
   })
 } catch (error) {}
 
-
-// 阻止打开京东金融App的代码
-chrome.webRequest.onBeforeRequest.addListener(
-  function (details) {
-    if (details.url == "https://m.jr.jd.com/statics/downloadApp/newdl/newdl.js")
-      return {
-        cancel: (details.url.indexOf("://m.jr.jd.com/") != -1)
-      };
-  }, {
-    urls: ["*://m.jr.jd.com/*", "*://m.jd.com/*"]
-  }, ["blocking"]);
 
 // 定时任务
 chrome.alarms.onAlarm.addListener(function( alarm ) {
@@ -114,7 +74,6 @@ chrome.alarms.onAlarm.addListener(function( alarm ) {
       break;
     // 周期运行（10分钟）
     case alarm.name == 'cycleTask':
-      clearPinnedTabs()
       findJobs()
       runJob()
       updateIcon()
@@ -152,7 +111,6 @@ function saveJobStack(jobStack) {
 // 根据页面查找匹配的任务
 function findTasksByLocation(location) {
   let taskList = getTasks()
-  console.log('taskList', taskList)
   let locationTask = taskList.filter(task => task.location && Object.keys(task.location).length > 0)
   let matchedTasks =[]
   locationTask.forEach((task) => {
@@ -162,7 +120,6 @@ function findTasksByLocation(location) {
   })
   return matchedTasks
 }
-
 
 function scheduleJob(task) {
   let hour = DateTime.local().hour;
@@ -208,11 +165,10 @@ function pushJob(task, jobStack) {
 function findJobs(platform) {
   let jobStack = getSetting('jobStack', [])
   let taskList = getTasks(platform)
-  console.log('taskList', taskList)
 
   taskList.forEach(function(task) {
-    if (task.suspended || task.deprecated) {
-      return console.log(task.title, '任务已暂停')
+    if (task.suspended || task.deprecated || task.pause) {
+      return console.log(task.title, '任务已暂停', task)
     }
     if (task.checked) {
       return console.log(task.title, '任务已完成')
@@ -274,27 +230,16 @@ async function runJob(taskId, force = false) {
   if ((task.suspended || task.deprecated) && !force) {
     return log('job', task, '由于账号未登录已暂停运行')
   }
+
+  // 开始运行任务
   if (task.frequency != 'never' || force) {
     log('background', "run", task)
+    currentTask = task
+    setTimeout(() => {
+      currentTask = null
+    }, 2 * 60 * 1000);
     await addTaskLog(task)
-    if (task.mode == 'iframe') {
-      openByIframe(task.url, 'job')
-    } else {
-      chrome.tabs.create({
-        index: 1,
-        url: task.url,
-        active: false,
-        pinned: true
-      }, function (tab) {
-        // 将标签页静音
-        chrome.tabs.update(tab.id, {
-          muted: true
-        }, function (result) {
-          log('background', "muted tab", result)
-        })
-        chrome.alarms.create('closeTab_'+tab.id, {delayInMinutes: 3})
-      })
-    }
+    openByIframe(task.url, 'job')
   }
 }
 
@@ -376,15 +321,8 @@ function removeExpiredLocalStorageItems() {
   }
 }
 
-function setDefaultSetting() {
-  let priceProDays = localStorage.getItem("price_pro_days")
-  if (!priceProDays) {
-    saveSetting("price_pro_days", 15)
-  }
-}
-
-
 $( document ).ready(function() {
+  currentTask = null
   log('background', "document ready", new Date())
   // 每10分钟运行一次定时任务
   chrome.alarms.create('cycleTask', {
@@ -402,12 +340,10 @@ $( document ).ready(function() {
 
   // 加载任务参数
   loadSettingsToLocalStorage('task-parameters')
+  // loadSettingsToLocalStorage('action-links')
 
   // 加载推荐设置
   loadRecommendSettingsToLocalStorage()
-
-  // 设置默认值
-  setDefaultSetting()
 
   // 移除临时缓存项（只在20点～8点运行）
   if (new Date().getHours() > 20 || new Date().getHours() < 8) {
@@ -433,24 +369,6 @@ function openLoginPage(loginState) {
       url: "https://home.jd.com"
     })
   }
-}
-
-// 清除不需要的tab
-function clearPinnedTabs() {
-  chrome.tabs.query({
-    pinned: true
-  }, function (tabs) {
-    var tabIds = $.map(tabs, function (tab) {
-      if (tab && tab.url.indexOf('jd.com') !== -1) {
-        return tab.id
-      }
-    })
-
-    // opera doesn't remove pinned tabs, so lets first unpin
-    $.map(tabIds, function (tabId) {
-        chrome.tabs.update(tabId, {"pinned":false}, function(theTab){ chrome.tabs.remove(theTab.id); });
-    })
-  })
 }
 
 // 点击通知
@@ -616,14 +534,14 @@ function saveLoginState(loginState) {
   // 如果登录状态从失败转换到了在线
   if (previousState[loginState.type].state != 'alive' && loginState.state == "alive") {
     setTimeout(() => {
+      log('background', "login alive run job 1")
+      if (!currentTask || currentTask.id != '1') {
+        runJob('1')
+      }
+    }, 15000);
+    setTimeout(() => {
       findJobs(loginState.type)
     }, 30000);
-  }
-  // 如果账号首次登录，马上运行一次价保
-  if (previousState.class == 'unknown' && loginState.state == "alive") {
-    setTimeout(() => {
-      runJob('1')
-    }, 15000);
   }
 }
 
@@ -643,14 +561,12 @@ function sendChromeNotification(id, content) {
 // 价保设置
 function getPriceProtectionSetting() {
   let pro_min = getSetting('price_pro_min', 0.1);
-  let pro_days = getSetting('price_pro_days', 15)
   let is_plus = (getSetting('is_plus') ? getSetting('is_plus') == 'checked' : false ) || (getSetting('jjb_plus') == 'Y')
   let prompt_only = getSetting('prompt_only') ? getSetting('prompt_only') == 'checked' : false
   let suspendedApplyIds = getSetting("suspendedApplyIds", []);
   return {
     pro_min,
     prompt_only,
-    pro_days,
     is_plus,
     suspendedApplyIds
   }
@@ -696,6 +612,7 @@ function loadSettingsToLocalStorage(key) {
     saveSetting(key, json)
   })
 }
+
 // 加载推荐设置
 function loadRecommendSettingsToLocalStorage() {
   $.getJSON("https://jjb.zaoshu.so/recommend/settings", function (json) {
@@ -782,7 +699,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
       break;
     // 促销信息
     case 'promotions':
-      reportPromotions(msg)
+      // reportPromotions(msg)
       break;
     // 保存登录状态
     case 'saveLoginState':
@@ -1023,40 +940,6 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
           log('background', "muted tab", result)
         })
         chrome.alarms.create('closeTab_' + tab.id, { delayInMinutes: 1 })
-      })
-      break;
-    case 'remove_tab':
-      chrome.tabs.query({
-        url: msg.content.url,
-        pinned: msg.content.pinned
-      }, function (tabs) {
-        let tabIds = $.map(tabs, function (tab) {
-          return tab.id
-        })
-        chrome.tabs.remove(tabIds)
-      })
-      break;
-    // 高亮Tab
-    case 'highlightTab':
-      var content = JSON.parse(msg.content)
-      chrome.tabs.query({
-        url: content.url,
-        pinned: content.pinned == 'true'
-      }, function (tabs) {
-        $.map(tabs, function (tab) {
-          chrome.tabs.update(tab.id, { pinned: false }, function (newTab) {
-            sendChromeNotification(new Date().getTime().toString(), {
-              type: "basic",
-              title: content.title ? content.title : "京价保未能自动完成任务",
-              message: "需要人工辅助，已将窗口切换至需要操作的标签" ,
-              iconUrl: 'static/image/128.png'
-            })
-            chrome.tabs.highlight({
-              tabs: newTab.index
-            })
-          })
-          return tab.id
-        })
       })
       break;
     case 'couponReceived':

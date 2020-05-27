@@ -1,5 +1,14 @@
-编译方式：`VERSION=2.6.5 BROWSER=chrome yarn build`   
-Chrome 编译：`Pack extension` -> `jjb/build` + `jjb/build.pem`
+使用方式：
+1. 下载源码并编译
+```bash
+# 下载
+git clone https://github.com/chuyik/jjb.git && cd jjb
+# 编译(版本号随意)
+yarn && VERSION=2.6.5 BROWSER=chrome yarn build
+```
+2. 访问 [chrome://extensions/]()
+3. 点击 `Load unpacked` 按钮
+4. 选择 `dist/` 文件夹即可安装
 -----
 
 # 京价保 - 自动申请京东价格保护

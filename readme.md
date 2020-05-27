@@ -6,7 +6,7 @@ git clone https://github.com/chuyik/jjb.git && cd jjb
 # 编译(版本号随意)
 yarn && VERSION=2.6.5 BROWSER=chrome yarn build
 ```
-2. 访问 [chrome://extensions/]()
+2. 访问 [chrome://extensions/](chrome://extensions/)
 3. 点击 `Load unpacked` 按钮
 4. 选择 `dist/` 文件夹即可安装
 -----

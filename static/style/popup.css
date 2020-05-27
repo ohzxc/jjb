@@ -17,6 +17,7 @@ a:hover {
 html, body {
     min-height: 580px;
     min-width: 780px;
+    margin: 0;
     overflow-x: hidden;
     overflow-y: hidden;
 }
@@ -660,11 +661,15 @@ a.buy-btn:hover{
     border-radius: 0 4px 4px 0;
 }
 
-.weui-navbar+.weui-tab__panel{
+.popup .weui-navbar + .weui-tab__panel{
     padding-top: 36px;
 }
 
-.weui-navbar__item{
+.popup .weui-cells.contents-box{
+    margin-top: 0;
+}
+
+.popup .weui-navbar__item{
     padding: 7px 0;
     cursor: pointer;
 }
@@ -773,10 +778,6 @@ img.weui-tabbar__icon {
 #faqDialags,
 #jEventDialags{
     display: none;
-}
-
-.contents-box{
-    margin-top: 0;
 }
 
 .listenVoice{
@@ -998,11 +999,6 @@ button.Button.messages-tab.Button--plain:focus {
    margin-right: 2px;
 }
 
-.openMobilePage{
-    cursor: pointer;
-}
-
-
 .el-tag {
     background-color: rgba(64, 158, 255, .1);
     display: inline-block;
@@ -1106,10 +1102,6 @@ button.Button.messages-tab.Button--plain:focus {
 
 .action-list .el-tag{
     padding: 0 8px;
-}
-
-.tips .weui-btn{
-    display: none;
 }
 
 .tips a.weui-btn_primary.weui-btn:hover {

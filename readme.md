@@ -9,10 +9,19 @@
   web store' width='496' height='150' src='https://jjbcdn.zaoshu.so/web/cws_badge_496x150.png' />
 </a>
 
-同时提供 Firefox 版本：
+同时提供
+
+Firefox 版本：
 
 <a href="https://addons.mozilla.org/zh-CN/firefox/addon/jjb/" target="_black">
   <img alt="安装 Firefox 版" class="firefox" src="https://d33wubrfki0l68.cloudfront.net/4ce5ce101cdaa4030248fab2934960ad1cc6960e/3f95c/firefox-quantum.png" width="32px">
+</a>
+
+
+Microsoft Edge 版本：
+
+<a href="https://microsoftedge.microsoft.com/addons/detail/ljdjkkjiognkghfjndoddoplekppngge" target="_black">
+  <img alt="安装 Edge 版" class="edge" src="https://edgetipscdn.microsoft.com/insider-site/images/favicon.fbd89822.png" width="32px">
 </a>
 
 或者直接下载的 CRX文件手动安装（非常不建议）
@@ -27,11 +36,9 @@
 
 * 自动监控最近订单商品的价格变化，在商品降价时自动申请价格保护
 * 自动签到领取京豆
-* 自动签到领取钢镚
 * 自动领白条券
 * 自动领Plus券
 * 自动领全品类
-* 自动京东金融会员签到
 * 商品价格走势图
 
 ## 界面截图
@@ -61,8 +68,6 @@
 ## 价格
 
 京价保可以免费使用，如果京价保确实帮到你，你可以通过打赏作者来鼓励京价保继续更新。
-
-在理想的情况下，京价保通常至少能够提供每个月大于5元的等同现金的收入（每天3~15个京豆+0.08个钢镚），即使你买的东西中没有任何一件降价。
 
 ![打赏作者](https://jjbcdn.zaoshu.so/weixin_pay.png?imageView2/0/h/300)
 

@@ -50,10 +50,10 @@ export default {
   mounted: async function() {
     setTimeout(() => {
       this.preload()
-    }, 200);
+    }, 50);
     setTimeout(() => {
       this.show()
-    }, 400);
+    }, 550);
   },
   methods: {
     close: async function() {
@@ -76,8 +76,11 @@ export default {
     },
     getEvents: function() {
       let events = getSetting("events", []);
-      events = events.filter(event => DateTime.fromJSDate(new Date(event.validUntil)) > DateTime.local());
-      saveSetting("events", events);
+      events = events.filter(event => {
+        const isValid = event.validUntil ? DateTime.fromJSDate(new Date(event.validUntil)) > DateTime.local() : true
+        const isStarted = event.startAt ? DateTime.fromJSDate(new Date(event.startAt)) < DateTime.local() : true
+        return isValid && isStarted
+      });
       this.events = events
       return events;
     },

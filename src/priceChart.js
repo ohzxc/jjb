@@ -36,12 +36,7 @@ $(document).ready(function () {
   }
 
   function timestampToDateNumber(timestamp) {
-    let currentDate = new Date(timestamp).toLocaleDateString(undefined, {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    })
-    return currentDate.replace(/\//g, '');
+    return new Date(timestamp).toISOString().slice(0,10).replace(/-/g,"")
   }
 
   var slideIndex = 1;
@@ -76,11 +71,12 @@ $(document).ready(function () {
           let specialPromotion = data.specialPromotion
           let chart = new Chart({
             container: 'jjbPriceChart',
-            forceFit: true,
-            padding: [50, '5%', 80, '6%'],
+            autoFit: true,
+            padding: [50, 50, 80, 50],
             height: 300
           });
-          chart.source(data.chart, {
+          chart.data(data.chart)
+          chart.scale({
             timestamp: {
               type: 'time',
               mask: 'MM-DD HH:mm',
@@ -88,20 +84,33 @@ $(document).ready(function () {
               tickCount: 5
             }
           });
-          chart.line().position('timestamp*value').shape('hv').color('key');
+          chart.scale('value', {
+            min: data.averagePrice ? (data.averagePrice / 3) : 0,
+            nice: true,
+          });
+          chart.line().position('timestamp*value').shape('hv').color('key').tooltip({ fields: [ 'key', 'value', 'timestamp' ], callback: (key, value, timestamp) => {
+            const itemDate = timestampToDateNumber(timestamp)
+            return {
+              key,
+              value: value,
+              date: itemDate,
+            };
+          }});
           chart.tooltip(
             {
-              useHtml: true,
-              htmlContent: function (title, items) {
+              showCrosshairs: true, // 展示 Tooltip 辅助线
+              shared: true,
+              showTitle: true,
+              customContent: (title, items) => {
                 let itemDom = ""
                 let promotionsDom = ""
                 let promotions = []
+
                 items.forEach(item => {
-                  const itemTime = timestampToDateNumber(item.point._origin.timestamp)
                   promotions = data.promotionLogs.find(function (promotion) {
-                    return promotion.date == itemTime;
+                    return promotion.date == item.date;
                   });
-                  itemDom += `<li style="color:${item.point.color}"><span class="price-type">${item.name}</span>: ${item.value} 元</li>`
+                  itemDom += `<li style="color:${item.color}"><span class="price-type">${item.key}</span>: ${item.value} 元</li>`
                 });
                 promotions && promotions.detail && promotions.detail.forEach(item => {
                   promotionsDom += `<li><span class="tag">${item.typeName}</span><span class="description">${item.description}</span></li>`

@@ -152,6 +152,7 @@
                 </div>
               </div>
             </div>
+            <vitamin/>
             <div class="tips bottom-tips">
               <p class="page__desc" v-if="notice">
                 <a id="notice" @dblclick="changeTips">{{notice.text}}</a>
@@ -621,6 +622,7 @@ import { getSetting, saveSetting } from "../utils";
 import taskSetting from "./task-setting.vue";
 import support from "./support.vue";
 import links from "./links.vue";
+import vitamin from "./vitamin.vue";
 import weDialog from "./we-dialog.vue";
 
 const settingKeys = [
@@ -641,7 +643,7 @@ const settingKeys = [
 export default {
   name: "settings",
   props: ["loginState"],
-  components: { taskSetting, support, links, weDialog },
+  components: { taskSetting, support, links, vitamin, weDialog },
   data() {
     return {
       frequencyOptionText: frequencyOptionText,
@@ -991,7 +993,7 @@ export default {
 }
 
 .tasks {
-  height: 456px;
+  height: 420px;
 }
 
 .enabled-task {

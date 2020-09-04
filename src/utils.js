@@ -21,9 +21,11 @@ export const getSetting = function (settingKey, defaultValue) {
   if (setting) {
     try {
       setting = JSON.parse(setting)
-    } catch (error) { }
+    } catch (error) {
+      return setting
+    }
   }
-  return setting ? setting : defaultValue
+  return typeof setting != "undefined" && setting !== null ? setting : defaultValue
 }
 export const saveSetting = function (settingKey, value) {
   return localStorage.setItem(settingKey, JSON.stringify(value))

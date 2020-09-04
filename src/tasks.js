@@ -46,6 +46,7 @@ const tasks = [
       hour: 2
     }
   },
+  
   {
     id: '15',
     src: {
@@ -69,6 +70,7 @@ const tasks = [
       hour: 2
     }
   },
+  // 已弃用
   {
     id: '3',
     src: {
@@ -88,8 +90,10 @@ const tasks = [
       weekly: 32,
       daily: 4,
       hour: 2
-    }
+    },
+    deprecated: true
   },
+  // 已弃用
   {
     id: '4',
     src: {
@@ -109,7 +113,8 @@ const tasks = [
       weekly: 32,
       daily: 4,
       hour: 2
-    }
+    },
+    deprecated: true
   },
   {
     id: '21',
@@ -138,8 +143,9 @@ const tasks = [
       hour: 2
     }
   },
+   // 已失效
   {
-    id: '29', // 已失效
+    id: '29',
     src: {
       m: 'https://red-e.jd.com/resources/pineapple/index.html',
     },
@@ -163,6 +169,7 @@ const tasks = [
     },
     deprecated: true
   },
+  // 已失效
   {
     id: '23',
     src: {
@@ -183,7 +190,8 @@ const tasks = [
       weekly: 14,
       daily: 3,
       hour: 2
-    }
+    },
+    deprecated: true
   },
   {
     id: '5',
@@ -308,6 +316,7 @@ const tasks = [
     frequency: 'daily',
     deprecated: true
   },
+  // 已弃用
   {
     id: '16',
     src: {
@@ -327,6 +336,7 @@ const tasks = [
       hour: 2
     }
   },
+  // 已弃用
   {
     id: '30',
     src: {
@@ -350,7 +360,9 @@ const tasks = [
       daily: 4,
       hour: 2
     },
+    deprecated: true
   },
+  // 已弃用
   {
     id: '22',
     src: {
@@ -375,6 +387,7 @@ const tasks = [
       hour: 2
     }
   },
+  // 已弃用
   {
     id: '31',
     src: {
@@ -399,7 +412,30 @@ const tasks = [
       daily: 4,
       hour: 2
     },
-  }
+    deprecated: true
+  },
+  {
+    id: '32',
+    src: {
+      pc: 'https://cart.jd.com',
+    },
+    url: 'https://cart.jd.com',
+    title: '购物车降价提醒',
+    description: "在购物车商品发生降价时提醒（将商品加入购物放几天京东有机会会定向降价）",
+    mode: 'iframe',
+    location: {
+      host: ['cart.jd.com'],
+      pathname: ['/']
+    },
+    type: ['pc'],
+    frequencyOption: ['2h', '5h', 'daily', 'never'],
+    frequency: '2h',
+    rateLimit:{
+      weekly: 55,
+      daily: 10,
+      hour: 2
+    }
+  },
 ]
 
 // 根据登录状态选择任务模式

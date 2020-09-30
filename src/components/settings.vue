@@ -617,9 +617,9 @@ import { frequencyOptionText, getTasks } from "../tasks";
 import { recommendServices, notices } from "../variables";
 import { getSetting, saveSetting } from "../utils";
 import taskSetting from "./task-setting.vue";
-import support from "./support.vue";
-import links from "./links.vue";
-import vitamin from "./vitamin.vue";
+// import support from "./support.vue";
+// import links from "./links.vue";
+// import vitamin from "./vitamin.vue";
 import weDialog from "./we-dialog.vue";
 
 const settingKeys = [
@@ -640,7 +640,7 @@ const settingKeys = [
 export default {
   name: "settings",
   props: ["loginState"],
-  components: { taskSetting, support, links, vitamin, weDialog },
+  components: { taskSetting, weDialog },
   data() {
     return {
       frequencyOptionText: frequencyOptionText,

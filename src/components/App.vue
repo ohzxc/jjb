@@ -9,7 +9,11 @@
       <div class="weui-tab">
         <div class="weui-navbar">
           <div
-            :class="`weui-navbar__item ${contentType == 'orders' ? 'weui-bar__item_on' : ''}`"
+            :class="
+              `weui-navbar__item ${
+                contentType == 'orders' ? 'weui-bar__item_on' : ''
+              }`
+            "
             @click="switchContentType('orders')"
           >
             最近订单
@@ -26,7 +30,11 @@
                 height="12"
                 style="margin-bottom: -1px"
               >
-                <path fill="#fff" stroke="#888" d="M1.5 4.518h5.982V10.5H1.5z"></path>
+                <path
+                  fill="#fff"
+                  stroke="#888"
+                  d="M1.5 4.518h5.982V10.5H1.5z"
+                ></path>
                 <path
                   d="M5.765 1H11v5.39L9.427 7.937l-1.31-1.31L5.393 9.35l-2.69-2.688 2.81-2.808L4.2 2.544z"
                   fill="#888"
@@ -39,11 +47,17 @@
             </a>
           </div>
           <div
-            :class="`weui-navbar__item ${contentType == 'messages' ? 'weui-bar__item_on' : ''}`"
+            :class="
+              `weui-navbar__item ${
+                contentType == 'messages' ? 'weui-bar__item_on' : ''
+              }`
+            "
             @click="switchContentType('messages')"
           >
             最近通知
-            <span class="weui-badge" v-if="unreadCount > 0">{{unreadCount}}</span>
+            <span class="weui-badge" v-if="unreadCount > 0">{{
+              unreadCount
+            }}</span>
           </div>
           <!-- <div :class="`weui-navbar__item zaoshu-tab ${contentType == 'discounts' ? 'weui-bar__item_on' : ''}`" @click="switchContentType('discounts')">
             <img src="../static/image/zaoshu.png" alt="" class="zaoshu-icon">
@@ -55,29 +69,46 @@
           </div> -->
         </div>
         <div class="weui-tab__panel">
-          <div id="orders" v-if="contentType == 'orders'" class="weui-cells contents-box orders">
+          <div
+            id="orders"
+            v-if="contentType == 'orders'"
+            class="weui-cells contents-box orders"
+          >
             <ul v-if="orders && orders.length > 0">
               <li
                 v-for="order in orders"
                 :key="order.id"
-                v-show="!order.promotionInfo && (order.goods && order.goods.length > 0)"
+                v-show="order.goods && order.goods.length > 0"
               >
                 <div class="order_time">
-                  <span v-show="order.displayTime">下单时间： {{order.displayTime}}</span>
-                  <span v-show="order.promotionInfo">{{order.promotionInfo}}</span>
+                  <span v-show="order.displayTime"
+                    >下单时间： {{ order.displayTime }}</span
+                  >
+                  <span v-show="order.promotionInfo">{{
+                    order.promotionInfo
+                  }}</span>
                   <span
                     v-if="order.promotionInfo"
                     v-tippy
                     title="不感兴趣"
                     class="dismiss"
                     @click="dismiss(order)"
-                  >&times;</span>
+                    >&times;</span
+                  >
                   <span
                     v-else
                     v-show="order.id"
                     v-tippy
-                    :title="hiddenOrderIds.indexOf(order.id) > -1 ? '显示订单' : '隐藏订单'"
-                    :class="hiddenOrderIds.indexOf(order.id) > -1 ? 'show-order' : 'hide-order'"
+                    :title="
+                      hiddenOrderIds.indexOf(order.id) > -1
+                        ? '显示订单'
+                        : '隐藏订单'
+                    "
+                    :class="
+                      hiddenOrderIds.indexOf(order.id) > -1
+                        ? 'show-order'
+                        : 'hide-order'
+                    "
                     @click="toggleOrder(order)"
                   ></span>
                 </div>
@@ -90,18 +121,21 @@
                         @error.once="backup_picture($event)"
                         class="promotion_title backup_picture"
                         :alt="order.title"
-                      >
-                      <a :href="`${order.link}`" target="_blank">{{order.title}}</a>
-                      <p class="description">{{order.description}}</p>
+                      />
+                      <a :href="`${order.link}`" target="_blank">{{
+                        order.title
+                      }}</a>
+                      <p class="description">{{ order.description }}</p>
                     </div>
                   </div>
                   <div class="weui-cell__ft">
-                    <span class="promotion_price">{{order.priceInfo}}</span>
+                    <span class="promotion_price">{{ order.priceInfo }}</span>
                     <a
                       :href="`${order.link}`"
                       target="_blank"
                       class="buy-btn weui-btn weui-btn_mini weui-btn_primary"
-                    >{{order.buttonText}}</a>
+                      >{{ order.buttonText }}</a
+                    >
                   </div>
                 </div>
                 <div
@@ -110,7 +144,10 @@
                   :class="`order-good ${good.suspended}`"
                   v-show="hiddenOrderIds.indexOf(order.id) > -1 ? false : true"
                 >
-                  <div class="weui-cell good" v-if="good && good.order_price > 0">
+                  <div
+                    class="weui-cell good"
+                    v-if="good && good.order_price > 0"
+                  >
                     <div class="weui-cell__bd">
                       <div class="good_title">
                         <div class="good_img">
@@ -120,7 +157,7 @@
                             @error.once="backup_picture($event)"
                             class="backup_picture"
                             :alt="good.name"
-                          >
+                          />
                           <div class="monitoring">
                             <span
                               v-if="good.suspended"
@@ -143,24 +180,33 @@
                             v-if="!disableOrderLink"
                             :href="`https://item.jd.com/${good.sku}.html`"
                             target="_blank"
-                          >{{good.name}}</a>
-                          <a v-else>{{good.name}}</a>
-                          <span class="count" v-if="good.quantity">&times; {{good.quantity}}</span>
+                            >{{ good.name }}</a
+                          >
+                          <a v-else>{{ good.name }}</a>
+                          <span class="count" v-if="good.quantity"
+                            >&times; {{ good.quantity }}</span
+                          >
                         </p>
                       </div>
                     </div>
                     <div class="weui-cell__ft">
-                      <span class="order_price">￥{{good.order_price}}</span>
+                      <span class="order_price">￥{{ good.order_price }}</span>
                       <div class="sku_price" v-if="skuPriceList[good.sku]">
                         <span
                           class="new_price down"
                           v-if="good.order_price > skuPriceList[good.sku].price"
-                        >￥{{skuPriceList[good.sku].price}}</span>
+                          >￥{{ skuPriceList[good.sku].price }}</span
+                        >
                         <span
                           class="new_price up"
-                          v-else-if="good.order_price < skuPriceList[good.sku].price"
-                        >￥{{skuPriceList[good.sku].price}}</span>
-                        <span class="new_price" v-else>￥{{skuPriceList[good.sku].price}}</span>
+                          v-else-if="
+                            good.order_price < skuPriceList[good.sku].price
+                          "
+                          >￥{{ skuPriceList[good.sku].price }}</span
+                        >
+                        <span class="new_price" v-else
+                          >￥{{ skuPriceList[good.sku].price }}</span
+                        >
                       </div>
                     </div>
                   </div>
@@ -168,7 +214,9 @@
                     :class="`log ${log.status}`"
                     v-for="(log, index) in good.logs"
                     :key="index"
-                  >{{log.message}}</p>
+                  >
+                    {{ log.message }}
+                  </p>
                 </div>
               </li>
               <p class="text-tips">
@@ -177,7 +225,8 @@
                   target="_block"
                   v-tippy
                   title="点击了解京东价格保护政策"
-                >只显示在价保有效期内且下单金额大于0的订单</a>
+                  >只显示在价保有效期内且下单金额大于0的订单</a
+                >
               </p>
             </ul>
             <div class="no_order" v-else>
@@ -209,7 +258,7 @@
                       tabindex="-1"
                       class="el-radio-button__orig-radio"
                       value="checkin_notice"
-                    >
+                    />
                     <span class="el-radio-button__inner">签到记录</span>
                   </label>
                   <label
@@ -224,7 +273,7 @@
                       tabindex="-1"
                       class="el-radio-button__orig-radio"
                       value="priceProtectionNotice"
-                    >
+                    />
                     <span class="el-radio-button__inner">价保记录</span>
                   </label>
                   <label
@@ -239,7 +288,7 @@
                       tabindex="-1"
                       class="el-radio-button__orig-radio"
                       value="coupon"
-                    >
+                    />
                     <div class="el-radio-button__inner">领券记录</div>
                   </label>
                 </div>
@@ -249,12 +298,21 @@
               <li v-for="(message, index) in messages" :key="index">
                 <div
                   :class="`weui-panel__bd message-item type-${message.type}`"
-                  v-show="!selectedTab || selectedTab == message.type || (selectedTab == 'priceProtectionNotice' && message.type == 'notice')"
+                  v-show="
+                    !selectedTab ||
+                      selectedTab == message.type ||
+                      (selectedTab == 'priceProtectionNotice' &&
+                        message.type == 'notice')
+                  "
                 >
                   <div class="weui-media-box weui-media-box_text">
                     <h4 class="weui-media-box__title message">
-                      <i :class="`${message.type} ${message.batch} ${message.unit}`"></i>
-                      {{message.title}}
+                      <i
+                        :class="
+                          `${message.type} ${message.batch} ${message.unit}`
+                        "
+                      ></i>
+                      {{ message.title }}
                     </h4>
                     <div class="coupon-box" v-if="message.coupon">
                       <p>
@@ -276,9 +334,40 @@
                         target="_blank"
                       >{{message.coupon.name}}</a>
                     </div>
-                    <p v-else class="weui-media-box__desc">{{message.content}}</p>
+                    <div class="product-box" v-else-if="message.content.priceCut">
+                      <div class="good_title">
+                        <div class="good_img">
+                          <img
+                            v-if="message.content.product"
+                            :src="`https:${message.content.product.img}`"
+                            @error.once="backup_picture($event)"
+                            class="backup_picture"
+                            :alt="message.content.product.name"
+                          />
+                        </div>
+                        <p v-if="message.content.product">
+                          <a
+                            v-if="!disableOrderLink"
+                            :href="`https://jjb.zaoshu.so/good/${message.content.product.sku}`"
+                            target="_blank"
+                            >{{ message.content.product.name }}</a>
+                          <a v-else>{{ message.content.product.name }}</a>
+                        </p>
+                      </div>
+                      <p>
+                        <span class="price-cut">{{
+                          message.content.priceCut
+                        }}</span>
+                        <span class="new-price"><a href="https://cart.jd.com/" target="_black">当前价格：{{ message.content.newPrice }}</a></span>
+                      </p>
+                    </div>
+                    <p v-else class="weui-media-box__desc">
+                      {{ message.content }}
+                    </p>
                     <ul class="weui-media-box__info">
-                      <li class="weui-media-box__info__meta">时间: {{message.time}}</li>
+                      <li class="weui-media-box__info__meta">
+                        时间: {{ message.time }}
+                      </li>
                     </ul>
                   </div>
                 </div>
@@ -286,13 +375,22 @@
             </div>
             <div class="no_message" v-else>暂时还没有未读消息</div>
           </div>
-          <discounts v-if="contentType == 'discounts'"/>
+          <discounts v-if="contentType == 'discounts'" />
         </div>
       </div>
       <div class="bottom">
         <div class="weui-tabbar">
-          <a id="pricePro" class="weui-tabbar__item" v-tippy title="打开京东价格保护页面">
-            <img src="../../static/image/money.png" alt="" class="weui-tabbar__icon">
+          <a
+            id="pricePro"
+            class="weui-tabbar__item"
+            v-tippy
+            title="打开京东价格保护页面"
+          >
+            <img
+              src="../../static/image/money.png"
+              alt=""
+              class="weui-tabbar__icon"
+            />
             <p class="weui-tabbar__label">价保页面</p>
           </a>
           <a
@@ -302,7 +400,11 @@
             :title="`当前版本：${currentVersion}，查看京价保最近更新记录`"
             style="position: relative;"
           >
-            <img src="../../static/image/update.png" alt="" class="weui-tabbar__icon">
+            <img
+              src="../../static/image/update.png"
+              alt=""
+              class="weui-tabbar__icon"
+            />
             <p class="weui-tabbar__label">
               最近更新
               <span
@@ -314,7 +416,8 @@
                 class="weui-badge"
                 style="position: absolute;top: -.4em;right: 2em;"
                 v-if="newVersion"
-              >有新版</span>
+                >有新版</span
+              >
             </p>
           </a>
           <a
@@ -325,7 +428,11 @@
             title="点击查看本插件的全部代码"
             target="_blank"
           >
-            <img src="../../static/image/github.png" alt="" class="weui-tabbar__icon">
+            <img
+              src="../../static/image/github.png"
+              alt=""
+              class="weui-tabbar__icon"
+            />
             <p class="weui-tabbar__label">源代码</p>
           </a>
         </div>
@@ -333,7 +440,11 @@
     </div>
     <div class="dialogs">
       <guide v-if="showGuide" :login-state="loginState"></guide>
-      <login-notice v-if="showLoginState" :state="loginState" @close="showLoginState = false"></login-notice>
+      <login-notice
+        v-if="showLoginState"
+        :state="loginState"
+        @close="showLoginState = false"
+      ></login-notice>
       <popup v-if="showPopup" @close="showPopup = false"></popup>
       <we-dialog
         v-if="dialog && showDialog"
@@ -361,7 +472,7 @@ import {
   getSetting,
   versionCompare,
   readableTime,
-  saveSetting
+  saveSetting,
 } from "../utils";
 import { stateText } from "../variables";
 
@@ -373,7 +484,7 @@ function tippyElement(el) {
         el._tippy.setContent(title);
       } else {
         tippy(el, {
-          content: title
+          content: title,
         });
       }
     }
@@ -382,7 +493,7 @@ function tippyElement(el) {
 
 Vue.directive("tippy", {
   componentUpdated: tippyElement,
-  inserted: tippyElement
+  inserted: tippyElement,
 });
 
 import loginNotice from "./login-notice.vue";
@@ -426,12 +537,12 @@ export default {
         default: true,
         description: "未能获取登录状态",
         m: {
-          state: "unknown"
+          state: "unknown",
         },
         pc: {
-          state: "unknown"
-        }
-      }
+          state: "unknown",
+        },
+      },
     };
   },
   mounted: async function() {
@@ -477,15 +588,13 @@ export default {
       } else {
         return false;
       }
-    }
+    },
   },
   methods: {
     checkUpdate: async function() {
       // 查询最新版本
       $.getJSON(
-        `https://jjb.zaoshu.so/updates?buildid=${process.env.BUILDID}&browser=${
-          process.env.BROWSER
-        }`,
+        `https://jjb.zaoshu.so/updates?buildid=${process.env.BUILDID}&browser=${process.env.BROWSER}`,
         function(lastVersion) {
           if (!lastVersion) return localStorage.removeItem("newVersion");
           let skipBuildId = localStorage.getItem("skipBuildId");
@@ -504,9 +613,7 @@ export default {
             <div class="changelog">
               <span class="time">${lastVersion.time}</span>` +
                   (lastVersion.blogUrl
-                    ? `<a class="blog" href="${
-                        lastVersion.blogUrl
-                      }" target="_blank">了解更多</a>`
+                    ? `<a class="blog" href="${lastVersion.blogUrl}" target="_blank">了解更多</a>`
                     : "") +
                   `</div>`,
                 className: "update",
@@ -516,7 +623,7 @@ export default {
                     type: "default",
                     onClick: function() {
                       localStorage.setItem("skipBuildId", lastVersion.buildId);
-                    }
+                    },
                   },
                   {
                     label: "下载更新",
@@ -525,15 +632,13 @@ export default {
                       chrome.tabs.create({
                         url:
                           lastVersion.downloadUrl ||
-                          `https://jjb.zaoshu.so/updates/latest?browser=${
-                            process.env.BROWSER
-                          }`
+                          `https://jjb.zaoshu.so/updates/latest?browser=${process.env.BROWSER}`,
                       });
-                    }
-                  }
-                ]
-              }
-              this.showDialog = true
+                    },
+                  },
+                ],
+              };
+              this.showDialog = true;
             }
           } else {
             localStorage.removeItem("newVersion");
@@ -579,7 +684,7 @@ export default {
       this.unreadCount = 0;
       chrome.runtime.sendMessage(
         {
-          action: "clearUnread"
+          action: "clearUnread",
         },
         function(response) {
           console.log("Response: ", response);
@@ -591,12 +696,17 @@ export default {
     },
     getPromotions: function() {
       let promotions = getSetting("promotions", []);
-      promotions = _.reject(promotions, promotion => {
-        return (
-          DateTime.fromJSDate(new Date(promotion.validDate)) < DateTime.local()
-        );
+      promotions = promotions.filter((promotion) => {
+        const isValid = promotion.validDate
+          ? DateTime.fromJSDate(new Date(promotion.validDate)) >
+            DateTime.local()
+          : true;
+        const isStarted = promotion.startDate
+          ? DateTime.fromJSDate(new Date(promotion.startDate)) <
+            DateTime.local()
+          : true;
+        return isValid && isStarted;
       });
-      saveSetting("promotions", promotions);
       return promotions;
     },
     renderMessages: function(messages) {
@@ -718,28 +828,24 @@ export default {
       this.dialog = {
         title: "更新记录",
         content: `
-          <iframe id="changelogIframe" frameborder="0" src="https://jjb.zaoshu.so/changelog?buildId=${
-            process.env.BUILDID
-          }&browser=${
-          process.env.BROWSER
-        }" style="width: 100%;min-height: 350px;"
+          <iframe id="changelogIframe" frameborder="0" src="https://jjb.zaoshu.so/changelog?buildId=${process.env.BUILDID}&browser=${process.env.BROWSER}" style="width: 100%;min-height: 350px;"
           ></iframe>
         `,
         className: "changelog",
         buttons: [
           {
             label: "完成",
-            type: "primary"
-          }
-        ]
+            type: "primary",
+          },
+        ],
       };
       this.showDialog = true;
-    }
-  }
+    },
+  },
 };
 </script>
 
-<style  scoped>
+<style scoped>
 .orders,
 .messages,
 .discounts {

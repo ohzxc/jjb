@@ -144,8 +144,15 @@ html, body {
     margin-top: 10em;
 }
 
+#settings{
+    position: relative;
+}
+
 .bottom-tips {
     padding: 5px;
+    background: #eee;
+    position: absolute;
+    bottom: 0;
 }
 
 .other_actions h3{
@@ -884,6 +891,35 @@ button.Button.messages-tab.Button--plain:focus {
 }
 .message .checkin_notice.coin, .message .goldCoinReceived.goldCoin {
     background-image: url(../image/coin.png);
+}
+
+.messages .price-cut{
+    color: #f35353;
+    font-size: 14px;
+}
+
+.messages .new-price{
+    float: right;
+
+}
+
+.messages .new-price a{
+    color: #4CAF50;
+    font-size: 14px;
+}
+
+.messages .good_img{
+    float: left;
+    width: 0;
+}
+
+.message .priceCut {
+    background: url(../image/cart-arrow-down.png) no-repeat;
+    width: 20px;
+    height: 20px;
+    background-size: 20px;
+    display: inline-block;
+    margin-bottom: -3px;
 }
 
 .message .notice, .message .priceProtectionNotice {

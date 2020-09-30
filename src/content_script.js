@@ -393,7 +393,7 @@ async function dealProduct(product, orderInfo, setting) {
   let orderCountDom = product.find('.price-count .count').text() ? product.find('.price-count .count') : product.find('.item-name .count')
   let order_quantity =  Number(orderCountDom.text().trim().replace(/[^0-9\.-]+/g, ""))
 
-  let order_pro_logs = product.find('.show-detail').text() ? product.find('.show-detail td') : product.next().next().find('.item-jb')
+  let order_pro_logs = product.find('.show-detail').text() ? product.find('.show-detail p') : product.next().next().find('.item-jb')
 
   let product_img = product.find('a img').attr('src') ? product.find('a img').attr('src') : product.find('.img img').attr('src')
 
@@ -666,6 +666,55 @@ function getCommonUseCoupon(task) {
                 console.log("Response: ", response);
               });
             }
+          }, 1500)
+        }, time)
+        time += 5000;
+      }
+    })
+  }
+}
+
+// 32：购物车降价
+function priceCutNotice(task) {
+  if (task.frequency != 'never') {
+    let time = 0;
+    weui.toast('京价保运行中', 1000);
+    runStatus(task)
+    $(".cart-item-list .item-item").each(function () {
+      let item = $(this)
+      if (item.find('.pro-tiny-tip').text().indexOf("降价") > -1) {
+        let priceCut = item.find('.pro-tiny-tip').text().trim()
+        let productName = item.find('.p-name').text().trim()
+        let productPrice = item.find('.p-price strong').text().trim()
+        let productImg = item.find('.p-img img').attr("src")
+        console.log(productName, priceCut)
+        let productKey = item.attr("id")
+        let lastPriceCut = localStorage.getItem(productKey)
+
+        if (lastPriceCut && lastPriceCut == priceCut) return
+
+        localStorage.setItem(productKey, priceCut)
+
+        setTimeout(function () {
+          setTimeout(function () {
+            chrome.runtime.sendMessage({
+              action: "notice",
+              type: "priceCut",
+              task: task,
+              log: true,
+              title: "发现购物车商品降价",
+              content: {
+                product: {
+                  img: productImg,
+                  name: productName,
+                  sku: item.attr("skuId")
+                },
+                priceCut,
+                newPrice: productPrice
+              },
+            }, function (response) {
+              console.log("Response: ", response);
+            });
           }, 1500)
         }, time)
         time += 5000;
@@ -1157,6 +1206,7 @@ function dealLoginFailed(type, errorMsg) {
     content: errorMsg,
     state: "failed"
   }
+
   // 如果是单纯的登录页面，则不发送浏览器提醒
   if (window.innerWidth == 420 || window.location.href == "https://passport.jd.com/uc/login") {
     loginFailedDetail.notice = false
@@ -1829,6 +1879,10 @@ function triggerTask(task) {
     case '31':
       rightsCenterWhite(task)
       break;
+    // 32: 购物车降价
+    case '32':
+      priceCutNotice(task)
+      break;
     default:
       break;
   }
@@ -1926,7 +1980,8 @@ function CheckDom() {
     injectScript(chrome.extension.getURL('/static/touch-emulator.js'), 'body');
     injectScriptCode(`
       setTimeout(function () {
-        TouchEmulator();
+        const touchEmulatorRes = TouchEmulator({ force: true });
+        console.log('TouchEmulator', touchEmulatorRes)
       }, 200)
     `, 'body')
   }

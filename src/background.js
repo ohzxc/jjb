@@ -428,6 +428,10 @@ chrome.notifications.onButtonClicked.addListener(function (notificationId, butto
     if (batch != 'login-failed') {
       return
     }
+
+    if  (buttonIndex == 1) {
+      return saveSetting("mute_login-failed", true)
+    }
     switch (type) {
       case 'pc':
         if (buttonIndex == 0) {
@@ -449,27 +453,32 @@ chrome.notifications.onButtonClicked.addListener(function (notificationId, butto
   }
 })
 
+
+function resetIcon() {
+  chrome.browserAction.getBadgeText({}, function (text){
+    if (text == "X" || text == " ! ") {
+      chrome.browserAction.setBadgeText({
+        text: ""
+      });
+      chrome.browserAction.setTitle({
+        title: "京价保"
+      })
+    }
+  })
+  chrome.browserAction.setIcon({
+    path : {
+      "19": "static/image/jjb19x.png",
+      "38": "static/image/jjb38x.png"
+    }
+  });
+}
+
 // 根据登录状态调整图标显示
 function updateIcon() {
   let loginState = getLoginState()
   switch (loginState.class) {
     case 'alive':
-      chrome.browserAction.getBadgeText({}, function (text){
-        if (text == "X" || text == " ! ") {
-          chrome.browserAction.setBadgeText({
-            text: ""
-          });
-          chrome.browserAction.setTitle({
-            title: "京价保"
-          })
-        }
-      })
-      chrome.browserAction.setIcon({
-        path : {
-          "19": "static/image/jjb19x.png",
-          "38": "static/image/jjb38x.png"
-        }
-      });
+      resetIcon();
       chrome.contextMenus.removeAll();
       break;
     case 'failed':
@@ -498,26 +507,31 @@ function updateIcon() {
       });
       break;
     case 'warning':
-      chrome.browserAction.setBadgeBackgroundColor({
-        color: "#EE7E1B"
-      });
-      chrome.browserAction.setBadgeText({
-        text: " ! "
-      });
-      chrome.browserAction.setIcon({
-        path : {
-          "19": "static/image/partial-offline19x.png",
-          "38": "static/image/partial-offline38x.png"
-        }
-      });
-      chrome.contextMenus.removeAll();
-      chrome.contextMenus.create({
-        title: "登录部分失效，点击登录",
-        contexts: ["browser_action"],
-        onclick: function() {
-          openLoginPage(loginState)
-        }
-      });
+      let lastOpenPopupAt = getSetting('lastOpenPopupAt', null)
+      if ( lastOpenPopupAt && DateTime.fromJSDate(new Date(loginState.m.time)) > DateTime.fromISO(lastOpenPopupAt)) {
+        chrome.browserAction.setBadgeBackgroundColor({
+          color: "#EE7E1B"
+        });
+        chrome.browserAction.setBadgeText({
+          text: " ! "
+        });
+        chrome.browserAction.setIcon({
+          path : {
+            "19": "static/image/partial-offline19x.png",
+            "38": "static/image/partial-offline38x.png"
+          }
+        });
+        chrome.contextMenus.removeAll();
+        chrome.contextMenus.create({
+          title: "登录部分失效，点击登录",
+          contexts: ["browser_action"],
+          onclick: function() {
+            openLoginPage(loginState)
+          }
+        });
+      }  else {
+        resetIcon();
+      }
       break;
     default:
       break;
@@ -800,6 +814,10 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     case 'loginFailed':
       // 保存状态
       saveLoginState(msg)
+      if (getSetting("mute_login-failed", false)) break;
+      let lastNoticeLoginFailedAt = getSetting('lastNoticeLoginFailedAt', null)
+      if (lastNoticeLoginFailedAt && DateTime.local().hasSame(DateTime.fromISO(lastNoticeLoginFailedAt), 'day')) break;
+      saveSetting('lastNoticeLoginFailedAt', DateTime.local().toISO())
       let loginErrMsg = (msg.type == 'pc' ? 'PC网页版' : '移动网页版') + "自动登录失败：" + msg.content
       if (msg.notice) {
         sendChromeNotification(new Date().getTime().toString() + "_login-failed_" + msg.type, {
@@ -810,6 +828,9 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
           buttons: [
             {
               "title": "现在登录"
+            },
+            {
+              "title": "不再提醒"
             }
           ]
         })
@@ -995,6 +1016,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
       setTimeout(async () => {
         await updateMessages()
       }, 50);
+      saveSetting('lastOpenPopupAt', DateTime.local().toISO())
       break;
     case 'clearUnread':
       updateUnreadCount(-999)

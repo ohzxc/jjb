@@ -969,9 +969,9 @@ function showUtmSource() {
       <span id="reportUtmSource" class="report">举报</span>
     </div>
   </div>`
-  if (utm_source && utm_source.indexOf('zaoshu.so') < 0) {
-    $("body").prepend(utmSourceDom);
-  }
+  // if (utm_source && utm_source.indexOf('zaoshu.so') < 0) {
+  //   $("body").prepend(utmSourceDom);
+  // }
   $("#reportUtmSource").on("click", function () {
     weui.dialog({
       title: '举报劫持',
@@ -1980,6 +1980,12 @@ function CheckDom() {
   // 领取精选券
   if ($(".coupon_sec_body").length > 0) {
     getTask('2', pickupCoupon)
+  };
+
+  // 自动跳转至商品页面
+  if ($(".shop_intro .gobuy").length > 0) {
+   // showUtmSource()
+    getSetting('auto_gobuy', autoGobuy)
   };
 
   // 手机验证码

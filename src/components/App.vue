@@ -210,26 +210,32 @@
                             >
                           </p>
                         </div>
+                        <p v-if="good.sku">
+                          <a v-if="!disableOrderLink" :href="`https://item.jd.com/${good.sku}.html`" target="_blank"> {{good.name}}</a>
+                          <a v-else>{{good.name}}</a>
+                          <span class="count" v-if="good.quantity">&times; {{good.quantity}}</span>
+
+                        </p>
                       </div>
-                      <div class="weui-cell__ft">
-                        <span class="order_price">￥{{ good.order_price }}</span>
-                        <div class="sku_price" v-if="skuPriceList[good.sku]">
-                          <span
-                            class="new_price down"
-                            v-if="good.order_price > skuPriceList[good.sku].price"
-                            >￥{{ skuPriceList[good.sku].price }}</span
-                          >
-                          <span
-                            class="new_price up"
-                            v-else-if="
-                              good.order_price < skuPriceList[good.sku].price
-                            "
-                            >￥{{ skuPriceList[good.sku].price }}</span
-                          >
-                          <span class="new_price" v-else
-                            >￥{{ skuPriceList[good.sku].price }}</span
-                          >
-                        </div>
+                    </div>
+                    <div class="weui-cell__ft">
+                      <span class="order_price">￥{{ good.order_price }}</span>
+                      <div class="sku_price" v-if="skuPriceList[good.sku]">
+                        <span
+                          class="new_price down"
+                          v-if="good.order_price > skuPriceList[good.sku].price"
+                          >￥{{ skuPriceList[good.sku].price }}</span
+                        >
+                        <span
+                          class="new_price up"
+                          v-else-if="
+                            good.order_price < skuPriceList[good.sku].price
+                          "
+                          >￥{{ skuPriceList[good.sku].price }}</span
+                        >
+                        <span class="new_price" v-else
+                          >￥{{ skuPriceList[good.sku].price }}</span
+                        >
                       </div>
                     </div>
                     <p

@@ -152,10 +152,9 @@
                 </div>
               </div>
             </div>
-            <vitamin/>
-            <div class="tips bottom-tips">
-              <p class="page__desc" v-if="notice">
-                <a id="notice" @dblclick="changeTips">{{notice.text}}</a>
+            <!-- <div class="tips bottom-tips">
+              <p class="page__desc">
+                <a id="notice">京东页面经常更新，唯有你的支持才能让京价保保持更新。</a>
                 <span
                   v-if="notice.type == 'reward' && notice.button"
                   class="weui-btn weui-btn_mini weui-btn_primary switch-paymethod"
@@ -174,7 +173,7 @@
                   :data-url="notice.url"
                 >{{notice.button}}</span>
               </p>
-            </div>
+            </div> -->
           </div>
           <div class="notice_settings settings_box" v-show="activeTab == 'notice_settings'">
             <div class="weui-cells weui-cells_form">
@@ -262,7 +261,7 @@
                 </div>
               </div>
             </div>
-            <div class="other_actions">
+            <!-- <div class="other_actions">
               <div class="recommendation">
                 <h3 style="text-align: center;color: #666;">服务推荐</h3>
                 <p class="recommendServices">
@@ -323,7 +322,7 @@
                   data-tippy-content="关注京价保的公众号"
                 >京价保公众号</a>
               </p>
-            </div>
+            </div> -->
           </div>
           <div class="other_settings settings_box" v-show="activeTab == 'other_settings'">
             <div class="weui-cells weui-cells_form">
@@ -506,7 +505,7 @@
         </form>
       </div>
     </div>
-    <div class="bottom-box">
+    <!-- <div class="bottom-box">
       <div class="avatar">
         <a
           id="loginState"
@@ -543,7 +542,7 @@
       @close="showSupport = false"
       :initialPaymethod="paymethod"
       :initialTarget="target"
-    ></support>
+    ></support> -->
     <!-- 试听音效 -->
     <div id="listenAudio" v-if="listenAudio">
       <div class="js_dialog" style="opacity: 1;">
@@ -589,10 +588,8 @@
               </div>
             </div>
           </div>
-          <div class="weui-dialog__ft">
-            <a
-              class="weui-dialog__btn weui-dialog__btn_primary switch-paymethod"
-              @click="() => {
+          <!-- <div class="weui-dialog__ft">
+            <a class="weui-dialog__btn weui-dialog__btn_primary switch-paymethod" @click="() => {
                 listenAudio = false;
                 switchPaymethod('wechat', 'samedi')
               }"
@@ -600,7 +597,7 @@
               <i class="weui-icon-success"></i>打赏声优
             </a>
             <a class="weui-dialog__btn weui-dialog__btn_default" @click="listenAudio = false">下次吧</a>
-          </div>
+          </div> -->
         </div>
       </div>
     </div>
@@ -620,9 +617,9 @@ import { frequencyOptionText, getTasks } from "../tasks";
 import { recommendServices, notices } from "../variables";
 import { getSetting, saveSetting } from "../utils";
 import taskSetting from "./task-setting.vue";
-import support from "./support.vue";
-import links from "./links.vue";
-import vitamin from "./vitamin.vue";
+// import support from "./support.vue";
+// import links from "./links.vue";
+// import vitamin from "./vitamin.vue";
 import weDialog from "./we-dialog.vue";
 
 const settingKeys = [
@@ -643,7 +640,7 @@ const settingKeys = [
 export default {
   name: "settings",
   props: ["loginState"],
-  components: { taskSetting, support, links, vitamin, weDialog },
+  components: { taskSetting, weDialog },
   data() {
     return {
       frequencyOptionText: frequencyOptionText,

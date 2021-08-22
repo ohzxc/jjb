@@ -23,8 +23,6 @@ function renderDom() {
           <option value="60">最近60天</option>
           <option value="90">最近90天</option>
         </select>
-        <div id="specialPromotion">
-        </div>
         <span id="disablePriceChart">&times;</span>
       </h4>
       <div id="jjbPriceChart">

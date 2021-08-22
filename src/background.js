@@ -345,7 +345,7 @@ $( document ).ready(function() {
 
   // 加载任务参数
   loadSettingsToLocalStorage('task-parameters')
-  loadSettingsToLocalStorage('action-links')
+  // loadSettingsToLocalStorage('action-links')
 
   // 加载推荐设置
   loadRecommendSettingsToLocalStorage()
@@ -412,7 +412,7 @@ chrome.notifications.onClicked.addListener(function (notificationId) {
             })
           } else {
             chrome.tabs.create({
-              url: "https://zaoshu.so/coupon"
+              url: "https://www.jd.com"
             })
           }
       }
@@ -447,7 +447,7 @@ chrome.notifications.onButtonClicked.addListener(function (notificationId, butto
         break;
       default:
         chrome.tabs.create({
-          url: "https://zaoshu.so/coupon"
+          url: "https://www.jd.com"
         })
     }
   }
@@ -741,14 +741,14 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
       }
       // 价格追踪
       savePrice(priceInfo)
-      if (!disable_pricechart && priceInfo.sku) {
-        reportPrice(priceInfo)
-      }
+      // if (!disable_pricechart && priceInfo.sku) {
+      //   reportPrice(priceInfo)
+      // }
       sendResponse(priceInfo)
       break;
     // 促销信息
     case 'promotions':
-      reportPromotions(msg)
+      // reportPromotions(msg)
       break;
     // 保存登录状态
     case 'saveLoginState':

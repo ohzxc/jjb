@@ -4,3 +4,7 @@ yarn-error.log
 .cache
 .dist
 build
+dist
+.cache
+*.crx
+*.pem

@@ -25,86 +25,111 @@
                 class="tippy"
                 data-tippy-content="打开京东订单列表"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="12"
-                  height="12"
-                  style="margin-bottom: -1px"
-                >
-                  <path
-                    fill="#fff"
-                    stroke="#888"
-                    d="M1.5 4.518h5.982V10.5H1.5z"
-                  ></path>
-                  <path
-                    d="M5.765 1H11v5.39L9.427 7.937l-1.31-1.31L5.393 9.35l-2.69-2.688 2.81-2.808L4.2 2.544z"
-                    fill="#888"
-                  ></path>
-                  <path
-                    d="M9.995 2.004l.022 4.885L8.2 5.07 5.32 7.95 4.09 6.723l2.882-2.88-1.85-1.852z"
-                    fill="#fff"
-                  ></path>
-                </svg>
-              </a>
-            </div>
-            </div>
-            <div
-              :class="
-                `weui-navbar__item ${
-                  contentType == 'messages' ? 'weui-bar__item_on' : ''
-                }`
-              "
-              @click="switchContentType('messages')"
-            >
-            <div class="nav-item">
-              最近通知
-              <span class="weui-badge" v-if="unreadCount > 0">{{
-                unreadCount
-              }}</span>
-            </div>
-            </div>
-            <div
-              :class="
-                `weui-navbar__item zaoshu-tab ${
-                  contentType == 'discounts' ? 'weui-bar__item_on' : ''
-                }`
-              "
-              @click="switchContentType('discounts')"
-            >
-            <div class="nav-item">
-              <img
-                src="../../static/image/zaoshu.png"
-                alt=""
-                class="zaoshu-icon"
-              />
-              枣树集惠
-              <span
-                class="weui-badge weui-badge_dot new-discounts"
-                v-if="newDiscounts"
-              ></span>
-            </div>
-            </div>
+                <path
+                  fill="#fff"
+                  stroke="#888"
+                  d="M1.5 4.518h5.982V10.5H1.5z"
+                ></path>
+                <path
+                  d="M5.765 1H11v5.39L9.427 7.937l-1.31-1.31L5.393 9.35l-2.69-2.688 2.81-2.808L4.2 2.544z"
+                  fill="#888"
+                ></path>
+                <path
+                  d="M9.995 2.004l.022 4.885L8.2 5.07 5.32 7.95 4.09 6.723l2.882-2.88-1.85-1.852z"
+                  fill="#fff"
+                ></path>
+              </svg>
+            </a>
           </div>
-        <div class="weui-tab">
-          <div class="weui-tab__panel">
-            <div
-              id="orders"
-              v-show="contentType == 'orders'"
-              class="weui-cells contents-box orders"
-            >
-              <ul v-if="orders && orders.length > 0">
-                <li
-                  v-for="order in orders"
-                  :key="order.id"
-                  v-show="
-                    (order.promotionInfo &&
-                      hiddenPromotionIds.indexOf(order.id) < 0) ||
-                      (order.goods && order.goods.length > 0)
-                  "
-                >
-                  <div class="order_time">
-                    <span v-show="order.displayTime"
-                      >下单时间： {{ order.displayTime }}</span
+          <div
+            :class="
+              `weui-navbar__item ${
+                contentType == 'messages' ? 'weui-bar__item_on' : ''
+              }`
+            "
+            @click="switchContentType('messages')"
+          >
+            最近通知
+            <span class="weui-badge" v-if="unreadCount > 0">{{
+              unreadCount
+            }}</span>
+          </div>
+          <!-- <div :class="`weui-navbar__item zaoshu-tab ${contentType == 'discounts' ? 'weui-bar__item_on' : ''}`" @click="switchContentType('discounts')">
+            <img src="../static/image/zaoshu.png" alt="" class="zaoshu-icon">
+            枣树集惠
+            <span
+              class="weui-badge weui-badge_dot new-discounts"
+              v-if="newDiscounts"
+            ></span>
+          </div> -->
+        </div>
+        <div class="weui-tab__panel">
+          <div
+            id="orders"
+            v-if="contentType == 'orders'"
+            class="weui-cells contents-box orders"
+          >
+            <ul v-if="orders && orders.length > 0">
+              <li
+                v-for="order in orders"
+                :key="order.id"
+                v-show="order.goods && order.goods.length > 0"
+              >
+                <div class="order_time">
+                  <span v-show="order.displayTime"
+                    >下单时间： {{ order.displayTime }}</span
+                  >
+                  <span v-show="order.promotionInfo">{{
+                    order.promotionInfo
+                  }}</span>
+                  <span
+                    v-if="order.promotionInfo"
+                    v-tippy
+                    title="不感兴趣"
+                    class="dismiss"
+                    @click="dismiss(order)"
+                    >&times;</span
+                  >
+                  <span
+                    v-else
+                    v-show="order.id"
+                    v-tippy
+                    :title="
+                      hiddenOrderIds.indexOf(order.id) > -1
+                        ? '显示订单'
+                        : '隐藏订单'
+                    "
+                    :class="
+                      hiddenOrderIds.indexOf(order.id) > -1
+                        ? 'show-order'
+                        : 'hide-order'
+                    "
+                    @click="toggleOrder(order)"
+                  ></span>
+                </div>
+                <div class="weui-cell promotion" v-if="order.promotionInfo">
+                  <div class="weui-cell__bd">
+                    <div class="good_title">
+                      <img
+                        v-if="order.img"
+                        :src="`https:${order.img}`"
+                        @error.once="backup_picture($event)"
+                        class="promotion_title backup_picture"
+                        :alt="order.title"
+                      />
+                      <a :href="`${order.link}`" target="_blank">{{
+                        order.title
+                      }}</a>
+                      <p class="description">{{ order.description }}</p>
+                    </div>
+                  </div>
+                  <div class="weui-cell__ft">
+                    <span class="promotion_price">{{ order.priceInfo }}</span>
+                    <a
+                      :href="`${order.link}`"
+                      target="_blank"
+                      class="buy-btn weui-btn weui-btn_mini weui-btn_primary"
+                      >{{ order.buttonText }}</a
                     >
                     <span v-show="order.promotionInfo">{{
                       order.promotionInfo
@@ -322,65 +347,57 @@
                   </div>
                 </div>
               </div>
-              <div class="message-items" v-if="messages && messages.length > 0">
-                <li v-for="(message, index) in messages" :key="index">
-                  <div
-                    :class="`weui-panel__bd message-item type-${message.type}`"
-                    v-show="
-                      !selectedTab ||
-                        selectedTab == message.type ||
-                        (selectedTab == 'priceProtectionNotice' &&
-                          message.type == 'notice')
-                    "
-                  >
-                    <div class="weui-media-box weui-media-box_text">
-                      <h4 class="weui-media-box__title message">
-                        <i
-                          :class="
-                            `${message.type} ${message.batch} ${message.unit}`
-                          "
-                        ></i>
-                        {{ message.title }}
-                      </h4>
-                      <div class="coupon-box" v-if="message.coupon">
-                        <p>
-                          <span class="price">{{message.coupon.price}}</span>
-                        </p>
-                        <a
-                          v-if="message.coupon.batch == 'baitiao'"
-                          href="https://vip.jr.jd.com/coupon/myCoupons?default=IOU"
-                          target="_blank"
-                        >{{message.coupon.name}}</a>
-                        <a
-                          v-else-if="message.coupon.batch"
-                          :href="`https://search.jd.com/Search?coupon_batch=${message.coupon.batch}`"
-                          target="_blank"
-                        >{{message.coupon.name}}</a>
-                        <a
-                          v-else
-                          href="https://jjb.zaoshu.so/event/jdc?e=0&p=AyIPZRprFDJWWA1FBCVbV0IUWVALHFRBEwQAQB1AWQkrW1N8UGM3WyZ1VmxSCHMIE1dEbytsKxkOfARUG1IJAhMbVR5KFQsZBFUQWhAyEQ5UH10XARcFZRhYFAQRN2UbWiVJfAZlG1sdBhEBXR5dFDISA1cTXxUBFwBQG1McMhU3F18ES1kiN2UrayUCEjdVKwRRX08%3D&t=W1dCFFlQCxxUQRMEAEAdQFkJ"
-                          target="_blank"
-                        >{{message.coupon.name}}</a>
-                      </div>
-                      <div class="product-box" v-else-if="message.content.priceCut">
-                        <div class="good_title">
-                          <div class="good_img">
-                            <img
-                              v-if="message.content.product"
-                              :src="`https:${message.content.product.img}`"
-                              @error.once="backup_picture($event)"
-                              class="backup_picture"
-                              :alt="message.content.product.name"
-                            />
-                          </div>
-                          <p v-if="message.content.product">
-                            <a
-                              v-if="!disableOrderLink"
-                              :href="`https://jjb.zaoshu.so/good/${message.content.product.sku}`"
-                              target="_blank"
-                              >{{ message.content.product.name }}</a>
-                            <a v-else>{{ message.content.product.name }}</a>
-                          </p>
+            </div>
+            <div class="message-items" v-if="messages && messages.length > 0">
+              <li v-for="(message, index) in messages" :key="index">
+                <div
+                  :class="`weui-panel__bd message-item type-${message.type}`"
+                  v-show="
+                    !selectedTab ||
+                      selectedTab == message.type ||
+                      (selectedTab == 'priceProtectionNotice' &&
+                        message.type == 'notice')
+                  "
+                >
+                  <div class="weui-media-box weui-media-box_text">
+                    <h4 class="weui-media-box__title message">
+                      <i
+                        :class="
+                          `${message.type} ${message.batch} ${message.unit}`
+                        "
+                      ></i>
+                      {{ message.title }}
+                    </h4>
+                    <div class="coupon-box" v-if="message.coupon">
+                      <p>
+                        <span class="price">{{message.coupon.price}}</span>
+                      </p>
+                      <a
+                        v-if="message.coupon.batch == 'baitiao'"
+                        href="https://vip.jr.jd.com/coupon/myCoupons?default=IOU"
+                        target="_blank"
+                      >{{message.coupon.name}}</a>
+                      <a
+                        v-else-if="message.coupon.batch"
+                        :href="`https://search.jd.com/Search?coupon_batch=${message.coupon.batch}`"
+                        target="_blank"
+                      >{{message.coupon.name}}</a>
+                      <a
+                        v-else
+                        href="https://www.jd.com/"
+                        target="_blank"
+                      >{{message.coupon.name}}</a>
+                    </div>
+                    <div class="product-box" v-else-if="message.content.priceCut">
+                      <div class="good_title">
+                        <div class="good_img">
+                          <img
+                            v-if="message.content.product"
+                            :src="`https:${message.content.product.img}`"
+                            @error.once="backup_picture($event)"
+                            class="backup_picture"
+                            :alt="message.content.product.name"
+                          />
                         </div>
                         <p>
                           <span class="price-cut">{{
@@ -580,7 +597,7 @@ export default {
       stateText: stateText,
       newDiscounts: false,
       loadingOrder: false,
-      showPopup: true,
+      showPopup: false,
       showDialog: false,
       showLoginState: false,
       currentVersion: process.env.VERSION,

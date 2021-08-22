@@ -15,6 +15,18 @@
   "content_scripts": [
     {
       "matches": ["*://*.jd.com/*", "*://*.jd.hk/*"],
+      "exclude_matches": [
+        "*://ling.jd.com/*",
+        "*://ling-test.jd.com/*",
+        "*://ling-dev.jd.com/*",
+        "*://sck.jd.com/*",
+        "*://sck-test.jd.com/*",
+        "*://sck-dev.jd.com/*",
+        "*://erp.jd.com/*",
+        "*://ssc.jd.com/*",
+        "*://pmp.jd.com/*",
+        "*://ssa.jd.com/*"
+      ],
       "js": [
         "static/jquery.min.js",
         "static/content_script.js"
